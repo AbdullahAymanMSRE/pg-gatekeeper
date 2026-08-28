@@ -26,6 +26,12 @@ export const DEFAULT_CAPS: Caps = { maxToolCalls: 12, maxCostUsd: 0.6, maxWallMs
 
 export class CapExceeded extends Error {}
 
+export interface Spend {
+  usage: Usage;
+  startedAt: number;
+}
+export const newSpend = (): Spend => ({ usage: emptyUsage(), startedAt: Date.now() });
+
 export interface RoleRun {
   usage: Usage;
   toolCalls: number;
@@ -43,26 +49,32 @@ export async function runRole(opts: {
   tools: BetaRunnableTool<any>[];
   logger: TrajectoryLogger;
   caps?: Caps;
-  budget?: { usage: Usage; toolCalls: number; startedAt: number };
+  /** Shared across roles of one Case so cost and time caps apply to the whole review. */
+  spend?: Spend;
   ledger?: { runId: string; caseId: string };
 }): Promise<RoleRun> {
   const caps = opts.caps ?? DEFAULT_CAPS;
-  const budget = opts.budget ?? { usage: emptyUsage(), toolCalls: 0, startedAt: Date.now() };
+  const spend = opts.spend ?? newSpend();
+  const budget = { spend, toolCalls: 0 };
   await assertBudget();
-  const costBefore = budget.usage.costUsd;
+  const costBefore = spend.usage.costUsd;
   await opts.logger.log(opts.role, { type: "instructions", system: opts.system, user: opts.user });
 
   const tools = opts.tools.map((t) => wrapTool(t, opts.role, opts.logger, budget, caps));
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), Math.max(1_000, caps.maxWallMs - (Date.now() - budget.startedAt)));
+  const timer = setTimeout(() => controller.abort(), Math.max(1_000, caps.maxWallMs - (Date.now() - spend.startedAt)));
 
   const runner = client.beta.messages.toolRunner(
     {
       model: MODEL,
       max_tokens: 16_000,
       max_iterations: caps.maxToolCalls + 5,
-      betas: ["server-side-fallback-2026-07-01"],
-      fallbacks: "default",
+      // Auto-cache the growing prefix (system + case + tool results) on every turn.
+      cache_control: { type: "ephemeral" },
+      // Server-side refusal fallback exists only on the Opus/Fable tier.
+      ...(MODEL.startsWith("claude-opus") || MODEL.startsWith("claude-fable")
+        ? { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const }
+        : {}),
       system: [{ type: "text", text: opts.system, cache_control: { type: "ephemeral" } }],
       messages: [
         { role: "user", content: [{ type: "text", text: opts.user, cache_control: { type: "ephemeral" } }] },
@@ -77,7 +89,7 @@ export async function runRole(opts: {
   let text = "";
   try {
     for await (const message of runner) {
-      budget.usage = addUsage(budget.usage, MODEL, message.usage);
+      spend.usage = addUsage(spend.usage, MODEL, message.usage);
       const parts: string[] = [];
       for (const block of message.content) {
         if (block.type === "text") parts.push(block.text);
@@ -95,16 +107,16 @@ export async function runRole(opts: {
         },
       });
       if (message.stop_reason === "refusal") throw new CapExceeded("model refused the request");
-      if (budget.usage.costUsd > caps.maxCostUsd) throw new CapExceeded(`cost cap hit: $${budget.usage.costUsd.toFixed(2)}`);
+      if (spend.usage.costUsd > caps.maxCostUsd) throw new CapExceeded(`cost cap hit: $${spend.usage.costUsd.toFixed(2)}`);
     }
   } catch (err) {
     if (controller.signal.aborted) throw new CapExceeded("time cap hit");
     throw err;
   } finally {
     clearTimeout(timer);
-    if (opts.ledger) await record({ ...opts.ledger, role: opts.role, usd: budget.usage.costUsd - costBefore });
+    if (opts.ledger) await record({ ...opts.ledger, role: opts.role, usd: spend.usage.costUsd - costBefore });
   }
-  return { usage: budget.usage, toolCalls: budget.toolCalls, text };
+  return { usage: spend.usage, toolCalls: budget.toolCalls, text };
 }
 
 function wrapTool(

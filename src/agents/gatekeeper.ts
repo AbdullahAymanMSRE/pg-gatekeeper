@@ -1,11 +1,10 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { emptyUsage } from "../eval/cost.js";
 import type { Case } from "../harness/types.js";
 import type { Review, ReviewResult } from "../review/schema.js";
 import { TrajectoryLogger } from "../trajectory/logger.js";
-import { CapExceeded, DEFAULT_CAPS, caseFilesBlock, runRole, type Caps } from "./llm.js";
+import { CapExceeded, DEFAULT_CAPS, caseFilesBlock, newSpend, runRole, type Caps } from "./llm.js";
 import {
   CaseContext,
   explainQueryTool,
@@ -48,7 +47,7 @@ export async function gatekeeper(c: Case, opts: GatekeeperOptions): Promise<Revi
   const caps = opts.caps ?? DEFAULT_CAPS;
   const maxRetries = opts.maxRetries ?? 2;
   const logger = TrajectoryLogger.forCase(opts.runId, c.id);
-  const budget = { usage: emptyUsage(), toolCalls: 0, startedAt: Date.now() };
+  const spend = newSpend();
   const caseBlock = caseFilesBlock(c);
 
   const plannerCtx = new CaseContext(c);
@@ -71,7 +70,7 @@ export async function gatekeeper(c: Case, opts: GatekeeperOptions): Promise<Revi
         tools: [inspectSchemaTool(plannerCtx), runSqlTool(plannerCtx), explainQueryTool(plannerCtx), submitPlanTool(sink)],
         logger,
         caps: { ...caps, maxToolCalls: 4 },
-        budget: { ...budget, toolCalls: 0 },
+        spend,
         ledger: { runId: opts.runId, caseId: c.id },
       });
       plan = sink.plan;
@@ -104,7 +103,7 @@ export async function gatekeeper(c: Case, opts: GatekeeperOptions): Promise<Revi
         ],
         logger,
         caps,
-        budget: { ...budget, toolCalls: 0 },
+        spend,
         ledger: { runId: opts.runId, caseId: c.id },
       });
       if (!sink.review) throw new CapExceeded("executor finished without submitting a review");
@@ -134,7 +133,7 @@ export async function gatekeeper(c: Case, opts: GatekeeperOptions): Promise<Revi
         ],
         logger,
         caps: { ...caps, maxToolCalls: 6 },
-        budget: { ...budget, toolCalls: 0 },
+        spend,
         ledger: { runId: opts.runId, caseId: c.id },
       });
       const verdict = check.check ?? { accept: false, reason: "Verifier finished without submitting a verdict." };
@@ -174,8 +173,8 @@ export async function gatekeeper(c: Case, opts: GatekeeperOptions): Promise<Revi
     review: review!,
     needsHumanReview,
     escalationReason,
-    usage: budget.usage,
-    wallMs: Date.now() - budget.startedAt,
+    usage: spend.usage,
+    wallMs: Date.now() - spend.startedAt,
     retries,
   };
   await logger.log("orchestrator", { type: "final", output: result });

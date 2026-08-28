@@ -80,7 +80,10 @@ export interface TableCount {
 
 /** Measured facts from one Simulation. Every claim in a Review points here. */
 export interface Evidence {
+  /** Wall time of the whole migration file. */
   migrationMs: number;
+  /** Longest single transaction the migration held open (from pg_stat_activity.xact_start). */
+  maxTransactionMs: number;
   migrationError: string | null;
   locks: ObservedLock[];
   /** Longest single Writer stall, in ms. */
@@ -104,8 +107,8 @@ export interface Evidence {
 export interface Thresholds {
   /** Writer stalled longer than this → LOCK_BLOCKING. */
   writerStallMs: number;
-  /** Migration running longer than this → LONG_TRANSACTION. */
-  migrationMs: number;
+  /** A single transaction held open longer than this → LONG_TRANSACTION. */
+  transactionMs: number;
   /** After-plan slower than before-plan by this factor → QUERY_REGRESSION. */
   latencyFactor: number;
   /** A Seq Scan over more rows than this → QUERY_REGRESSION. */

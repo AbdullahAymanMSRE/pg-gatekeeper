@@ -5,6 +5,7 @@ import type { Evidence } from "./types.js";
 
 const clean: Evidence = {
   migrationMs: 1,
+  maxTransactionMs: 1,
   migrationError: null,
   locks: [{ table: "orders", mode: "AccessExclusiveLock" }],
   writerMaxStallMs: 4,
@@ -62,10 +63,16 @@ describe("classify", () => {
     });
   });
 
-  test("a long single-transaction migration is LONG_TRANSACTION even though it also stalls the writer", () => {
-    expect(classify({ ...clean, migrationMs: 4_300, writerMaxStallMs: 3_900 }, DEFAULT_THRESHOLDS)).toEqual({
+  test("a long single transaction is LONG_TRANSACTION even though it also stalls the writer", () => {
+    expect(classify({ ...clean, migrationMs: 4_300, maxTransactionMs: 4_300, writerMaxStallMs: 3_900 }, DEFAULT_THRESHOLDS)).toEqual({
       verdict: "UNSAFE",
       hazard: "LONG_TRANSACTION",
+    });
+  });
+
+  test("a batched backfill that takes long overall but keeps every transaction short is not LONG_TRANSACTION", () => {
+    expect(classify({ ...clean, migrationMs: 4_300, maxTransactionMs: 90, writerMaxStallMs: 23 }, DEFAULT_THRESHOLDS)).toEqual({
+      verdict: "SAFE",
     });
   });
 

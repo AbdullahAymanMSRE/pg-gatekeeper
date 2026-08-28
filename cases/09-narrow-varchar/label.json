@@ -3,12 +3,13 @@
   "hazard": "DATA_LOSS",
   "thresholds": {
     "writerStallMs": 50,
-    "migrationMs": 2000,
+    "transactionMs": 2000,
     "latencyFactor": 5,
     "seqScanRows": 100000
   },
   "evidence": {
-    "migrationMs": 39,
+    "migrationMs": 43,
+    "maxTransactionMs": 34,
     "migrationError": null,
     "locks": [
       {
@@ -20,7 +21,7 @@
         "mode": "ShareLock"
       }
     ],
-    "writerMaxStallMs": 3,
+    "writerMaxStallMs": 5,
     "writerErrors": 0,
     "writerAttempts": 46,
     "rowCountsBefore": [
@@ -56,7 +57,7 @@
       {
         "name": "customer_by_email",
         "which": "before",
-        "executionMs": 0.006,
+        "executionMs": 0.011,
         "nodeTypes": [
           "Index Scan"
         ],
@@ -66,7 +67,7 @@
       {
         "name": "recent_orders_for_customer",
         "which": "before",
-        "executionMs": 0.036,
+        "executionMs": 0.039,
         "nodeTypes": [
           "Limit",
           "Sort",
@@ -79,7 +80,7 @@
       {
         "name": "customer_by_email",
         "which": "after",
-        "executionMs": 0.011,
+        "executionMs": 0.007,
         "nodeTypes": [
           "Index Scan"
         ],
@@ -89,7 +90,7 @@
       {
         "name": "recent_orders_for_customer",
         "which": "after",
-        "executionMs": 0.047,
+        "executionMs": 0.057,
         "nodeTypes": [
           "Limit",
           "Sort",

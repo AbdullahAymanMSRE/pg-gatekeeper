@@ -26,6 +26,6 @@ for (const id of ids) {
     path.join(dir, "label.json"),
     JSON.stringify({ ...label, thresholds: DEFAULT_THRESHOLDS, evidence }, null, 2) + "\n",
   );
-  const summary = `ms=${evidence.migrationMs} stall=${evidence.writerMaxStallMs} err=${evidence.migrationError ? "yes" : "no"} dropped=${evidence.droppedColumns.length} lossy=${evidence.lossyChanges.length} seqScan=${Math.max(0, ...evidence.plans.filter((p) => p.which === "after").map((p) => p.seqScanRows))}`;
+  const summary = `ms=${evidence.migrationMs} xact=${evidence.maxTransactionMs} stall=${evidence.writerMaxStallMs} err=${evidence.migrationError ? "yes" : "no"} dropped=${evidence.droppedColumns.length} lossy=${evidence.lossyChanges.length} seqScan=${Math.max(0, ...evidence.plans.filter((p) => p.which === "after").map((p) => p.seqScanRows))}`;
   console.log(`${id.padEnd(34)} ${JSON.stringify(label).padEnd(48)} ${summary}  (${seconds}s)`);
 }

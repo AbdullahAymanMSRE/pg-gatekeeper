@@ -31,6 +31,23 @@ describe("simulate", () => {
     expect(e.locks).toContainEqual({ table: "orders", mode: "AccessExclusiveLock" });
   });
 
+  test("a whole-table UPDATE is one long transaction; the same backfill batched in a DO block with COMMIT is not", async () => {
+    const c = await loadCase("cases/01-add-nullable-column");
+    const single = await simulate({ ...c, migrationSql: "UPDATE orders SET notes = coalesce(notes, '');" });
+    expect(single.maxTransactionMs).toBeGreaterThan(2_000);
+    const batched = await simulate({
+      ...c,
+      migrationSql: `DO $$ DECLARE lo bigint := 0; hi bigint; BEGIN
+        SELECT max(id) INTO hi FROM orders;
+        WHILE lo < hi LOOP
+          UPDATE orders SET notes = coalesce(notes, '') WHERE id > lo AND id <= lo + 5000; lo := lo + 5000; COMMIT;
+        END LOOP; END $$;`,
+    });
+    expect(batched.migrationError).toBeNull();
+    expect(batched.maxTransactionMs).toBeLessThan(2_000);
+    expect(batched.writerMaxStallMs).toBeLessThan(50);
+  });
+
   test("a migration that drops a column reports it and a failing one reports the error", async () => {
     const c = await loadCase("cases/01-add-nullable-column");
     const dropped = await simulate({ ...c, migrationSql: "ALTER TABLE orders DROP COLUMN notes;" });

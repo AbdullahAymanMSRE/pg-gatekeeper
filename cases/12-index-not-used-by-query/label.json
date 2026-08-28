@@ -3,12 +3,13 @@
   "hazard": "QUERY_REGRESSION",
   "thresholds": {
     "writerStallMs": 50,
-    "migrationMs": 2000,
+    "transactionMs": 2000,
     "latencyFactor": 5,
     "seqScanRows": 100000
   },
   "evidence": {
-    "migrationMs": 584,
+    "migrationMs": 626,
+    "maxTransactionMs": 623,
     "migrationError": null,
     "locks": [
       {
@@ -16,9 +17,9 @@
         "mode": "ShareUpdateExclusiveLock"
       }
     ],
-    "writerMaxStallMs": 4,
+    "writerMaxStallMs": 2,
     "writerErrors": 0,
-    "writerAttempts": 56,
+    "writerAttempts": 57,
     "rowCountsBefore": [
       {
         "table": "customers",
@@ -47,7 +48,7 @@
       {
         "name": "recent_orders_for_customer",
         "which": "before",
-        "executionMs": 0.066,
+        "executionMs": 0.049,
         "nodeTypes": [
           "Limit",
           "Sort",
@@ -60,7 +61,7 @@
       {
         "name": "weekly_paid_report",
         "which": "before",
-        "executionMs": 100.593,
+        "executionMs": 103.926,
         "nodeTypes": [
           "Gather Merge",
           "Sort",
@@ -72,7 +73,7 @@
       {
         "name": "recent_orders_for_customer",
         "which": "after",
-        "executionMs": 0.084,
+        "executionMs": 0.069,
         "nodeTypes": [
           "Limit",
           "Sort",
@@ -85,7 +86,7 @@
       {
         "name": "weekly_paid_report",
         "which": "after",
-        "executionMs": 100.789,
+        "executionMs": 103.961,
         "nodeTypes": [
           "Gather Merge",
           "Sort",

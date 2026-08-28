@@ -45,12 +45,20 @@ export class CaseContext {
 
 const json = (v: unknown) => JSON.stringify(v);
 
+/** Models sometimes emit the two characters backslash+n inside SQL strings; turn them back into newlines. */
+function unescapeSql(sql: string | null): string | null {
+  if (sql === null) return null;
+  const literal = String.raw`\n`;
+  return sql.includes(literal) && !sql.includes("\n") ? sql.split(literal).join("\n") : sql;
+}
+
 /** Compact, model-facing view of Evidence. */
 export function summarizeEvidence(e: Evidence) {
   return {
     thresholds: DEFAULT_THRESHOLDS,
     migration: {
       duration_ms: e.migrationMs,
+      longest_transaction_ms: e.maxTransactionMs,
       error: e.migrationError,
       locks_held_on_user_tables: e.locks.map((l) => `${l.table}: ${l.mode}`),
     },
@@ -175,7 +183,7 @@ export function submitReviewTool(sink: { review: Review | null }) {
     description: "Submit the final review. Call exactly once, after measuring.",
     inputSchema: ReviewSchema,
     run: (input) => {
-      sink.review = input;
+      sink.review = { ...input, fixed_migration: unescapeSql(input.fixed_migration) };
       return "Review recorded.";
     },
   });

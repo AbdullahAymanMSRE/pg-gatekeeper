@@ -10,7 +10,7 @@ import type { Thresholds } from "./types.js";
  */
 export const DEFAULT_THRESHOLDS: Thresholds = {
   writerStallMs: 50,
-  migrationMs: 2_000,
+  transactionMs: 2_000,
   latencyFactor: 5,
   seqScanRows: 100_000,
 };

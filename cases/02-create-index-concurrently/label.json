@@ -2,12 +2,13 @@
   "verdict": "SAFE",
   "thresholds": {
     "writerStallMs": 50,
-    "migrationMs": 2000,
+    "transactionMs": 2000,
     "latencyFactor": 5,
     "seqScanRows": 100000
   },
   "evidence": {
-    "migrationMs": 286,
+    "migrationMs": 304,
+    "maxTransactionMs": 278,
     "migrationError": null,
     "locks": [
       {
@@ -15,9 +16,9 @@
         "mode": "ShareUpdateExclusiveLock"
       }
     ],
-    "writerMaxStallMs": 3,
+    "writerMaxStallMs": 2,
     "writerErrors": 0,
-    "writerAttempts": 50,
+    "writerAttempts": 51,
     "rowCountsBefore": [
       {
         "table": "customers",
@@ -46,7 +47,7 @@
       {
         "name": "recent_orders_for_customer",
         "which": "before",
-        "executionMs": 0.055,
+        "executionMs": 0.033,
         "nodeTypes": [
           "Limit",
           "Sort",
@@ -59,7 +60,7 @@
       {
         "name": "recent_orders_for_customer",
         "which": "after",
-        "executionMs": 0.053,
+        "executionMs": 0.055,
         "nodeTypes": [
           "Limit",
           "Sort",

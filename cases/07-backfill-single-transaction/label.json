@@ -3,12 +3,13 @@
   "hazard": "LONG_TRANSACTION",
   "thresholds": {
     "writerStallMs": 50,
-    "migrationMs": 2000,
+    "transactionMs": 2000,
     "latencyFactor": 5,
     "seqScanRows": 100000
   },
   "evidence": {
-    "migrationMs": 3528,
+    "migrationMs": 3612,
+    "maxTransactionMs": 3602,
     "migrationError": null,
     "locks": [
       {
@@ -16,9 +17,9 @@
         "mode": "RowExclusiveLock"
       }
     ],
-    "writerMaxStallMs": 2485,
+    "writerMaxStallMs": 2884,
     "writerErrors": 0,
-    "writerAttempts": 66,
+    "writerAttempts": 60,
     "rowCountsBefore": [
       {
         "table": "customers",
@@ -47,7 +48,7 @@
       {
         "name": "recent_orders_for_customer",
         "which": "before",
-        "executionMs": 0.042,
+        "executionMs": 0.037,
         "nodeTypes": [
           "Limit",
           "Sort",
@@ -60,7 +61,7 @@
       {
         "name": "recent_orders_for_customer",
         "which": "after",
-        "executionMs": 0.068,
+        "executionMs": 0.062,
         "nodeTypes": [
           "Limit",
           "Sort",

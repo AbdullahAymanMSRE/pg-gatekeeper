@@ -3,12 +3,13 @@
   "hazard": "LOCK_BLOCKING",
   "thresholds": {
     "writerStallMs": 50,
-    "migrationMs": 2000,
+    "transactionMs": 2000,
     "latencyFactor": 5,
     "seqScanRows": 100000
   },
   "evidence": {
-    "migrationMs": 524,
+    "migrationMs": 528,
+    "maxTransactionMs": 520,
     "migrationError": null,
     "locks": [
       {
@@ -20,7 +21,7 @@
         "mode": "ShareLock"
       }
     ],
-    "writerMaxStallMs": 507,
+    "writerMaxStallMs": 510,
     "writerErrors": 0,
     "writerAttempts": 46,
     "rowCountsBefore": [
@@ -51,7 +52,7 @@
       {
         "name": "recent_orders_for_customer",
         "which": "before",
-        "executionMs": 0.037,
+        "executionMs": 0.036,
         "nodeTypes": [
           "Limit",
           "Sort",
@@ -64,7 +65,7 @@
       {
         "name": "recent_orders_for_customer",
         "which": "after",
-        "executionMs": 0.043,
+        "executionMs": 0.049,
         "nodeTypes": [
           "Limit",
           "Sort",

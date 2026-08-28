@@ -3,12 +3,13 @@
   "hazard": "CONSTRAINT_SCAN",
   "thresholds": {
     "writerStallMs": 50,
-    "migrationMs": 2000,
+    "transactionMs": 2000,
     "latencyFactor": 5,
     "seqScanRows": 100000
   },
   "evidence": {
-    "migrationMs": 103,
+    "migrationMs": 105,
+    "maxTransactionMs": 82,
     "migrationError": null,
     "locks": [
       {
@@ -32,7 +33,7 @@
         "mode": "ShareRowExclusiveLock"
       }
     ],
-    "writerMaxStallMs": 91,
+    "writerMaxStallMs": 90,
     "writerErrors": 0,
     "writerAttempts": 46,
     "rowCountsBefore": [
@@ -63,7 +64,7 @@
       {
         "name": "recent_orders_for_customer",
         "which": "before",
-        "executionMs": 0.036,
+        "executionMs": 0.047,
         "nodeTypes": [
           "Limit",
           "Sort",
@@ -76,7 +77,7 @@
       {
         "name": "recent_orders_for_customer",
         "which": "after",
-        "executionMs": 0.061,
+        "executionMs": 0.052,
         "nodeTypes": [
           "Limit",
           "Sort",

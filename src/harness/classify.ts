@@ -12,7 +12,7 @@ export function classify(e: Evidence, t: Thresholds): Verdict {
   if (e.migrationError !== null || e.droppedColumns.length > 0 || e.droppedTables.length > 0 || e.lossyChanges.length > 0) {
     return { verdict: "UNSAFE", hazard: "DATA_LOSS" };
   }
-  if (e.migrationMs > t.migrationMs) {
+  if (e.maxTransactionMs > t.transactionMs) {
     return { verdict: "UNSAFE", hazard: "LONG_TRANSACTION" };
   }
   if (e.constraintFullScan) {

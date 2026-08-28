@@ -3,15 +3,16 @@
   "hazard": "DATA_LOSS",
   "thresholds": {
     "writerStallMs": 50,
-    "migrationMs": 2000,
+    "transactionMs": 2000,
     "latencyFactor": 5,
     "seqScanRows": 100000
   },
   "evidence": {
-    "migrationMs": 1,
+    "migrationMs": 3,
+    "maxTransactionMs": 0,
     "migrationError": null,
     "locks": [],
-    "writerMaxStallMs": 3,
+    "writerMaxStallMs": 19,
     "writerErrors": 0,
     "writerAttempts": 45,
     "rowCountsBefore": [
@@ -44,7 +45,7 @@
       {
         "name": "recent_orders_for_customer",
         "which": "before",
-        "executionMs": 0.036,
+        "executionMs": 0.039,
         "nodeTypes": [
           "Limit",
           "Sort",
@@ -57,7 +58,7 @@
       {
         "name": "recent_orders_for_customer",
         "which": "after",
-        "executionMs": 0.058,
+        "executionMs": 0.099,
         "nodeTypes": [
           "Limit",
           "Sort",

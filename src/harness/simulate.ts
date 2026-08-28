@@ -60,7 +60,7 @@ export async function simulate(c: Case, options: SimulateOptions = {}): Promise<
       await migrator.end();
 
       await sleep(opts.tailMs);
-      const locks = await monitor.stop();
+      const { locks, maxTransactionMs } = await monitor.stop();
       const w = await writer.stop();
 
       const tablesAfter = await userTables(admin);
@@ -89,6 +89,7 @@ export async function simulate(c: Case, options: SimulateOptions = {}): Promise<
 
       return {
         migrationMs,
+        maxTransactionMs,
         migrationError,
         locks,
         writerMaxStallMs: w.maxStallMs,
@@ -154,11 +155,17 @@ function startWriter(db: Awaited<ReturnType<typeof startShadowDb>>, c: Case, opt
 
 function startLockMonitor(db: Awaited<ReturnType<typeof startShadowDb>>, pid: number, pollMs: number) {
   let running = true;
+  let maxTransactionMs = 0;
   const seen = new Map<string, ObservedLock>();
   const done = (async () => {
     const client = await db.connect();
     try {
       while (running) {
+        const xact = await client.query<{ ms: number | null }>(
+          `SELECT (extract(epoch FROM (clock_timestamp() - xact_start)) * 1000)::int AS ms FROM pg_stat_activity WHERE pid = $1`,
+          [pid],
+        );
+        maxTransactionMs = Math.max(maxTransactionMs, xact.rows[0]?.ms ?? 0);
         const { rows } = await client.query<{ table: string; mode: string }>(
           `SELECT c.relname AS "table", l.mode
              FROM pg_locks l JOIN pg_class c ON c.oid = l.relation
@@ -178,7 +185,10 @@ function startLockMonitor(db: Awaited<ReturnType<typeof startShadowDb>>, pid: nu
     stop: async () => {
       running = false;
       await done;
-      return [...seen.values()].sort((a, b) => a.table.localeCompare(b.table) || a.mode.localeCompare(b.mode));
+      return {
+        maxTransactionMs,
+        locks: [...seen.values()].sort((a, b) => a.table.localeCompare(b.table) || a.mode.localeCompare(b.mode)),
+      };
     },
   };
 }
