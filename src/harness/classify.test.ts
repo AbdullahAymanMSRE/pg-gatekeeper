@@ -4,10 +4,10 @@ import { DEFAULT_THRESHOLDS } from "./thresholds.js";
 import type { Evidence } from "./types.js";
 
 const clean: Evidence = {
-  migrationMs: 120,
+  migrationMs: 1,
   migrationError: null,
   locks: [{ table: "orders", mode: "AccessExclusiveLock" }],
-  writerMaxStallMs: 40,
+  writerMaxStallMs: 4,
   writerErrors: 0,
   writerAttempts: 200,
   rowCountsBefore: [{ table: "orders", rows: 200_000 }],
@@ -27,7 +27,7 @@ describe("classify", () => {
   });
 
   test("a writer stall over the threshold is LOCK_BLOCKING", () => {
-    expect(classify({ ...clean, writerMaxStallMs: 8_200 }, DEFAULT_THRESHOLDS)).toEqual({
+    expect(classify({ ...clean, writerMaxStallMs: 514 }, DEFAULT_THRESHOLDS)).toEqual({
       verdict: "UNSAFE",
       hazard: "LOCK_BLOCKING",
     });
@@ -62,15 +62,15 @@ describe("classify", () => {
     });
   });
 
-  test("a long single-transaction migration without a stall is LONG_TRANSACTION", () => {
-    expect(classify({ ...clean, migrationMs: 45_000 }, DEFAULT_THRESHOLDS)).toEqual({
+  test("a long single-transaction migration is LONG_TRANSACTION even though it also stalls the writer", () => {
+    expect(classify({ ...clean, migrationMs: 4_300, writerMaxStallMs: 3_900 }, DEFAULT_THRESHOLDS)).toEqual({
       verdict: "UNSAFE",
       hazard: "LONG_TRANSACTION",
     });
   });
 
-  test("a full-table constraint validation is CONSTRAINT_SCAN", () => {
-    expect(classify({ ...clean, constraintFullScan: true }, DEFAULT_THRESHOLDS)).toEqual({
+  test("a full-table constraint validation is CONSTRAINT_SCAN, ahead of the stall it causes", () => {
+    expect(classify({ ...clean, constraintFullScan: true, writerMaxStallMs: 101 }, DEFAULT_THRESHOLDS)).toEqual({
       verdict: "UNSAFE",
       hazard: "CONSTRAINT_SCAN",
     });

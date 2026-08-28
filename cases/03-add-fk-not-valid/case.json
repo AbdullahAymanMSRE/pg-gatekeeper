@@ -1,0 +1,7 @@
+{
+  "title": "Add a foreign key from orders to customers, NOT VALID then VALIDATE",
+  "writerTables": [
+    { "table": "orders", "keyColumn": "id", "updateColumn": "updated_at", "updateExpr": "now()", "keyMax": 1000000 },
+    { "table": "customers", "keyColumn": "id", "updateColumn": "created_at", "updateExpr": "created_at", "keyMax": 20000 }
+  ]
+}

@@ -8,5 +8,5 @@ SELECT (random() * 19999 + 1)::bigint,
        CASE WHEN random() < 0.1 THEN 'gift wrap' END,
        now() - (random() * interval '365 days'),
        now()
-FROM generate_series(1, 200000) g;
+FROM generate_series(1, 1000000) g;
 ANALYZE;

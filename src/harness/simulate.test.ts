@@ -10,8 +10,8 @@ describe("simulate", () => {
     expect(e.migrationError).toBeNull();
     expect(e.writerErrors).toBe(0);
     expect(e.writerAttempts).toBeGreaterThan(5);
-    expect(e.writerMaxStallMs).toBeLessThan(1_000);
-    expect(e.rowCountsAfter).toContainEqual({ table: "orders", rows: 200_000 });
+    expect(e.writerMaxStallMs).toBeLessThan(50);
+    expect(e.rowCountsAfter).toContainEqual({ table: "orders", rows: 1_000_000 });
     expect(e.droppedColumns).toEqual([]);
     expect(e.columnsAfter.some((col) => col.table === "orders" && col.column === "coupon_code")).toBe(true);
     expect(e.plans.map((p) => `${p.name}:${p.which}`)).toEqual([

@@ -8,8 +8,8 @@ describe("loadCase", () => {
     expect(c.title).toBe("Add a nullable column to orders");
     expect(c.migrationSql.trim()).toBe("ALTER TABLE orders ADD COLUMN coupon_code text;");
     expect(c.schemaSql).toContain("CREATE TABLE orders");
-    expect(c.seedSql).toContain("generate_series(1, 200000)");
-    expect(c.writerTables[0]?.table).toBe("orders");
+    expect(c.seedSql).toContain("generate_series(1, 1000000)");
+    expect(c.writerTables.map((w) => w.table)).toEqual(["customers", "orders"]);
     expect(c.queries).toEqual([
       {
         name: "recent_orders_for_customer",

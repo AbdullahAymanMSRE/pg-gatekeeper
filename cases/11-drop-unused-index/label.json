@@ -1,0 +1,194 @@
+{
+  "verdict": "UNSAFE",
+  "hazard": "QUERY_REGRESSION",
+  "thresholds": {
+    "writerStallMs": 50,
+    "migrationMs": 2000,
+    "latencyFactor": 5,
+    "seqScanRows": 100000
+  },
+  "evidence": {
+    "migrationMs": 3,
+    "migrationError": null,
+    "locks": [],
+    "writerMaxStallMs": 2,
+    "writerErrors": 0,
+    "writerAttempts": 45,
+    "rowCountsBefore": [
+      {
+        "table": "customers",
+        "rows": 20000
+      },
+      {
+        "table": "orders",
+        "rows": 1000000
+      }
+    ],
+    "rowCountsAfter": [
+      {
+        "table": "customers",
+        "rows": 20000
+      },
+      {
+        "table": "orders",
+        "rows": 1000000
+      }
+    ],
+    "droppedColumns": [],
+    "droppedTables": [],
+    "lossyChanges": [],
+    "constraintFullScan": false,
+    "plans": [
+      {
+        "name": "recent_orders_for_customer",
+        "which": "before",
+        "executionMs": 0.045,
+        "nodeTypes": [
+          "Limit",
+          "Sort",
+          "Bitmap Heap Scan",
+          "Bitmap Index Scan"
+        ],
+        "seqScanRows": 0,
+        "rowsReturned": 20
+      },
+      {
+        "name": "recent_orders_for_customer",
+        "which": "after",
+        "executionMs": 13.893,
+        "nodeTypes": [
+          "Limit",
+          "Gather Merge",
+          "Sort",
+          "Seq Scan"
+        ],
+        "seqScanRows": 1000002,
+        "rowsReturned": 20
+      }
+    ],
+    "columnsBefore": [
+      {
+        "table": "customers",
+        "column": "id",
+        "type": "bigint",
+        "nullable": false
+      },
+      {
+        "table": "customers",
+        "column": "email",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "table": "customers",
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": false
+      },
+      {
+        "table": "orders",
+        "column": "id",
+        "type": "bigint",
+        "nullable": false
+      },
+      {
+        "table": "orders",
+        "column": "customer_id",
+        "type": "bigint",
+        "nullable": false
+      },
+      {
+        "table": "orders",
+        "column": "status",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "table": "orders",
+        "column": "total_cents",
+        "type": "integer",
+        "nullable": false
+      },
+      {
+        "table": "orders",
+        "column": "notes",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "table": "orders",
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": false
+      },
+      {
+        "table": "orders",
+        "column": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": false
+      }
+    ],
+    "columnsAfter": [
+      {
+        "table": "customers",
+        "column": "id",
+        "type": "bigint",
+        "nullable": false
+      },
+      {
+        "table": "customers",
+        "column": "email",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "table": "customers",
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": false
+      },
+      {
+        "table": "orders",
+        "column": "id",
+        "type": "bigint",
+        "nullable": false
+      },
+      {
+        "table": "orders",
+        "column": "customer_id",
+        "type": "bigint",
+        "nullable": false
+      },
+      {
+        "table": "orders",
+        "column": "status",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "table": "orders",
+        "column": "total_cents",
+        "type": "integer",
+        "nullable": false
+      },
+      {
+        "table": "orders",
+        "column": "notes",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "table": "orders",
+        "column": "created_at",
+        "type": "timestamp with time zone",
+        "nullable": false
+      },
+      {
+        "table": "orders",
+        "column": "updated_at",
+        "type": "timestamp with time zone",
+        "nullable": false
+      }
+    ]
+  }
+}

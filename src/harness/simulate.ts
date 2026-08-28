@@ -271,7 +271,7 @@ export async function explainOne(client: pg.Client, name: string, which: "before
   walk(plan!, (n) => {
     nodeTypes.push(n["Node Type"]);
     if (n["Node Type"] === "Seq Scan") {
-      seqScanRows = Math.max(seqScanRows, (n["Actual Rows"] ?? 0) + (n["Rows Removed by Filter"] ?? 0));
+      seqScanRows = Math.max(seqScanRows, ((n["Actual Rows"] ?? 0) + (n["Rows Removed by Filter"] ?? 0)) * (n["Actual Loops"] ?? 1));
     }
   });
   return {
@@ -288,6 +288,7 @@ interface PlanNode {
   "Node Type": string;
   "Actual Rows"?: number;
   "Rows Removed by Filter"?: number;
+  "Actual Loops"?: number;
   Plans?: PlanNode[];
 }
 

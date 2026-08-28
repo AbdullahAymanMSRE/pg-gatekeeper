@@ -3,21 +3,23 @@ import type { Evidence, Thresholds, Verdict } from "./types.js";
 /**
  * Turns Evidence into a Verdict using the Thresholds.
  *
- * Precedence when several hazards are present: the one that hurts most
- * irreversibly wins. Losing data beats a stall; a stall beats a slow query.
+ * Precedence when several hazards are present: irreversible harm first, then the
+ * hazard that names the most specific fix. Losing data beats everything; a long
+ * transaction (fix: batch it) and an unvalidated constraint (fix: NOT VALID) beat
+ * generic blocking (fix: a non-blocking form); a slow query comes last.
  */
 export function classify(e: Evidence, t: Thresholds): Verdict {
   if (e.migrationError !== null || e.droppedColumns.length > 0 || e.droppedTables.length > 0 || e.lossyChanges.length > 0) {
     return { verdict: "UNSAFE", hazard: "DATA_LOSS" };
   }
-  if (e.writerMaxStallMs > t.writerStallMs || e.writerErrors > 0) {
-    return { verdict: "UNSAFE", hazard: "LOCK_BLOCKING" };
+  if (e.migrationMs > t.migrationMs) {
+    return { verdict: "UNSAFE", hazard: "LONG_TRANSACTION" };
   }
   if (e.constraintFullScan) {
     return { verdict: "UNSAFE", hazard: "CONSTRAINT_SCAN" };
   }
-  if (e.migrationMs > t.migrationMs) {
-    return { verdict: "UNSAFE", hazard: "LONG_TRANSACTION" };
+  if (e.writerMaxStallMs > t.writerStallMs || e.writerErrors > 0) {
+    return { verdict: "UNSAFE", hazard: "LOCK_BLOCKING" };
   }
   if (hasQueryRegression(e, t)) {
     return { verdict: "UNSAFE", hazard: "QUERY_REGRESSION" };
