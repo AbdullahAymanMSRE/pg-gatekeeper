@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { loadDotenv } from "../env.js";
 import type { BetaMessageParam, BetaToolUnion } from "@anthropic-ai/sdk/resources/beta.js";
 import type { BetaRunnableTool } from "@anthropic-ai/sdk/lib/tools/BetaRunnableTool.js";
 import { addUsage, emptyUsage } from "../eval/cost.js";
@@ -6,8 +7,9 @@ import type { Usage } from "../review/schema.js";
 import type { Role, TrajectoryLogger } from "../trajectory/logger.js";
 
 /** ADR-0004: one model for every role and for the Baseline in scored Runs. */
-export const MODEL = process.env.GATEKEEPER_MODEL ?? "claude-opus-5";
+export const MODEL = (loadDotenv(), process.env.GATEKEEPER_MODEL ?? "claude-opus-5");
 
+loadDotenv();
 export const client = new Anthropic();
 
 export interface Caps {
