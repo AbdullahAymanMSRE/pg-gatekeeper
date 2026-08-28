@@ -1,0 +1,19 @@
+{
+  "title": "Add a NOT NULL timestamp column defaulting to now()",
+  "writerTables": [
+    {
+      "table": "customers",
+      "keyColumn": "id",
+      "updateColumn": "created_at",
+      "updateExpr": "created_at",
+      "keyMax": 20000
+    },
+    {
+      "table": "orders",
+      "keyColumn": "id",
+      "updateColumn": "updated_at",
+      "updateExpr": "now()",
+      "keyMax": 1000000
+    }
+  ]
+}

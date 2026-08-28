@@ -9,6 +9,7 @@ interface CaseBundle {
   label: unknown;
   baseline: unknown;
   gatekeeper: unknown;
+  scores: { baseline: unknown; gatekeeper: unknown };
   trajectories: Record<string, unknown[]>;
 }
 
@@ -42,6 +43,7 @@ export async function buildViewer(runId: string): Promise<string> {
       label: label ? { verdict: label.verdict, hazard: label.hazard, evidence: label.evidence } : null,
       baseline: b?.results.find((r) => r.caseId === id) ?? null,
       gatekeeper: g?.results.find((r) => r.caseId === id) ?? null,
+      scores: { baseline: b?.scores.find((s) => s.caseId === id) ?? null, gatekeeper: g?.scores.find((s) => s.caseId === id) ?? null },
       trajectories,
     });
   }
@@ -94,41 +96,42 @@ $("#model").textContent = DATA.model ? "model "+DATA.model : "";
 function nav(){
   const n=$("#nav"); n.innerHTML="";
   const b=document.createElement("button"); b.textContent="Overview"; b.onclick=()=>show("overview",b); n.appendChild(b);
-  for(const c of DATA.cases){const x=document.createElement("button"); const g=c.gatekeeper; const ok = g && c.label && verdictOk(g.review,c.label);
+  for(const c of DATA.cases){const x=document.createElement("button"); const g=c.gatekeeper; const ok = c.scores.gatekeeper && c.scores.gatekeeper.actionable;
     x.innerHTML=esc(c.id)+' <span class="tag">'+(g?(ok?"✓":"✗"):"")+'</span>'; x.onclick=()=>show(c.id,x); n.appendChild(x);}
   show("overview", b);
 }
 function verdictOk(rv,label){ if(!rv||!label) return false; if(rv.verdict!==label.verdict) return false; return label.verdict==="SAFE"||rv.hazard===label.hazard; }
+function fixCell(sc){ if(!sc) return '<span class="dim">–</span>'; const req = sc.expected.verdict==="UNSAFE" && sc.expected.hazard!=="DATA_LOSS"; if(!req) return '<span class="dim">–</span>'; return sc.fixProven?'<span class="ok">proven</span>':(sc.falseVerificationClaim?'<span class="bad">false claim</span>':'<span class="bad">none</span>'); }
 function show(id,btn){ document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active")); btn.classList.add("active");
   $("#view").innerHTML = id==="overview"?overview():caseView(DATA.cases.find(c=>c.id===id)); }
 function overview(){
   const b=DATA.baseline,g=DATA.gatekeeper;
   const k=(t,v,s)=>'<div><span>'+t+'</span><b>'+v+'</b><span>'+(s||"")+'</span></div>';
   let h='<div class="kpi">';
-  if(b) h+=k("Baseline accuracy",pct(b.accuracy),b.correct+"/"+b.cases+" · $"+b.meanCostUsd.toFixed(2)+"/case");
-  if(g) h+=k("Gatekeeper accuracy",pct(g.accuracy),g.correct+"/"+g.cases+" · $"+g.meanCostUsd.toFixed(2)+"/case");
-  if(g) h+=k("Fixes verified",g.fixesVerified+"/"+g.unsafeCases,"re-run on a fresh database");
-  if(g) h+=k("Escalated to a human",g.escalated,"caps or verifier rejections");
+  if(b) h+=k("Baseline · actionable",pct(b.actionableRate),b.actionable+"/"+b.cases+" · verdicts "+b.verdictCorrect+"/"+b.cases+" · $"+b.meanCostUsd.toFixed(2)+"/case");
+  if(g) h+=k("Gatekeeper · actionable",pct(g.actionableRate),g.actionable+"/"+g.cases+" · verdicts "+g.verdictCorrect+"/"+g.cases+" · $"+g.meanCostUsd.toFixed(2)+"/case");
+  if(b) h+=k("Baseline · fixes proven",b.fixesProven+"/"+b.fixesRequired,b.falseVerificationClaims+" false \"verified\" claims");
+  if(g) h+=k("Gatekeeper · fixes proven",g.fixesProven+"/"+g.fixesRequired,g.falseVerificationClaims+" false \"verified\" claims · "+g.escalated+" escalated");
   h+='</div>';
-  h+='<div class="card"><table><tr><th>Case</th><th>Label</th><th>Baseline</th><th>Gatekeeper</th><th>Fix</th><th>Cost</th><th>Time</th></tr>';
-  for(const c of DATA.cases){const bl=c.baseline,gk=c.gatekeeper;
-    const cell=(r)=> r? '<span class="'+(verdictOk(r.review,c.label)?"ok":"bad")+'">'+(verdictOk(r.review,c.label)?"✓ ":"✗ ")+esc(fmtV(r.review))+'</span>'+(r.needsHumanReview?' <span class="badge ESC">escalated</span>':'') : '<span class="dim">–</span>';
-    h+='<tr><td>'+esc(c.id)+'<br><span class="dim">'+esc(c.title)+'</span></td><td>'+esc(fmtV(c.label))+'</td><td>'+cell(bl)+'</td><td>'+cell(gk)+'</td><td>'+(gk?(gk.review.fixed_migration?(gk.review.fix_verified?'<span class="ok">verified</span>':'<span class="bad">unverified</span>'):'<span class="dim">–</span>'):'')+'</td><td>'+(gk?'$'+gk.usage.costUsd.toFixed(2):'')+'</td><td>'+(gk?(gk.wallMs/1000).toFixed(0)+'s':'')+'</td></tr>';}
+  h+='<div class="card"><table><tr><th>Case</th><th>Label</th><th>Baseline</th><th>Fix</th><th>Gatekeeper</th><th>Fix</th><th>Cost</th><th>Time</th></tr>';
+  for(const c of DATA.cases){const bl=c.baseline,gk=c.gatekeeper,sb=c.scores.baseline,sg=c.scores.gatekeeper;
+    const cell=(r,sc)=> r? '<span class="'+(sc&&sc.actionable?"ok":"bad")+'">'+(sc&&sc.actionable?"✓ ":"✗ ")+esc(fmtV(r.review))+'</span>'+(r.needsHumanReview?' <span class="badge ESC">escalated</span>':'') : '<span class="dim">–</span>';
+    h+='<tr><td>'+esc(c.id)+'<br><span class="dim">'+esc(c.title)+'</span></td><td>'+esc(fmtV(c.label))+'</td><td>'+cell(bl,sb)+'</td><td>'+fixCell(sb)+'</td><td>'+cell(gk,sg)+'</td><td>'+fixCell(sg)+'</td><td>'+(gk?'$'+gk.usage.costUsd.toFixed(2):'')+'</td><td>'+(gk?(gk.wallMs/1000).toFixed(0)+'s':'')+'</td></tr>';}
   h+='</table></div>';
   if(DATA.comparison) h+='<div class="card"><pre>'+esc(DATA.comparison)+'</pre></div>';
   return h;
 }
-function review(r,label){ if(!r) return '<div class="card dim">not run</div>'; const v=r.review; const ok=verdictOk(v,label);
+function review(r,label,sc){ if(!r) return '<div class="card dim">not run</div>'; const v=r.review; const ok=verdictOk(v,label);
   return '<div class="card"><div><span class="badge '+(r.needsHumanReview?"ESC":v.verdict)+'">'+(r.needsHumanReview?"NEEDS HUMAN REVIEW":v.verdict)+'</span> '+(v.hazard?'<b>'+esc(v.hazard)+'</b>':'')+' <span class="'+(ok?"ok":"bad")+'">'+(ok?"matches label":"does not match label")+'</span> <span class="dim">· confidence '+(v.confidence*100).toFixed(0)+'%</span></div>'
   +'<p>'+esc(v.summary)+'</p><ul>'+v.evidence.map(e=>'<li>'+esc(e)+'</li>').join('')+'</ul>'
-  +(v.fixed_migration?'<div><b>Fix</b> <span class="'+(v.fix_verified?"ok":"bad")+'">'+(v.fix_verified?"verified on a fresh database":"NOT verified")+'</span><pre><code>'+esc(v.fixed_migration.trim())+'</code></pre></div>':'')
+  +(v.fixed_migration?'<div><b>Fix</b> · model says '+(v.fix_verified?"verified":"not verified")+' · harness: '+fixCell(sc)+'<pre><code>'+esc(v.fixed_migration.trim())+'</code></pre></div>':'')
   +'<p><b>Do this:</b> '+esc(v.action)+'</p>'+(r.escalationReason?'<p class="dim">Escalated: '+esc(r.escalationReason)+'</p>':'')
   +'<p class="dim">'+esc(r.method)+' · '+(r.wallMs/1000).toFixed(0)+'s · $'+r.usage.costUsd.toFixed(2)+' · '+r.usage.inputTokens.toLocaleString()+' in / '+r.usage.outputTokens.toLocaleString()+' out · '+r.retries+' retries</p></div>'; }
 function caseView(c){
   let h='<h2 style="margin-top:0">'+esc(c.id)+' <span class="dim">'+esc(c.title)+'</span></h2>';
   h+='<div class="card"><b>Migration under review</b><pre><code>'+esc(c.migration.trim())+'</code></pre><b>Label</b> (from the harness): '+esc(fmtV(c.label))
   +(c.label&&c.label.evidence?' <span class="dim">· migration '+c.label.evidence.migrationMs+' ms · writer stall '+c.label.evidence.writerMaxStallMs+' ms · locks '+esc(c.label.evidence.locks.map(l=>l.table+':'+l.mode.replace("Lock","")).join(", "))+'</span>':'')+'</div>';
-  h+='<div class="grid2"><div><h3>Baseline (one prompt)</h3>'+review(c.baseline,c.label)+'</div><div><h3>Gatekeeper (planner → executor → verifier)</h3>'+review(c.gatekeeper,c.label)+'</div></div>';
+  h+='<div class="grid2"><div><h3>Baseline (one prompt)</h3>'+review(c.baseline,c.label,c.scores.baseline)+'</div><div><h3>Gatekeeper (planner → executor → verifier)</h3>'+review(c.gatekeeper,c.label,c.scores.gatekeeper)+'</div></div>';
   h+='<h3>Trajectories</h3>';
   const order=["baseline","planner","executor","verifier","orchestrator"];
   for(const role of order){ const evs=c.trajectories[role]; if(!evs) continue;

@@ -1,32 +1,45 @@
 import type { Verdict } from "../harness/types.js";
 import type { ReviewResult } from "../review/schema.js";
+import type { FixProof } from "./proof.js";
 
 export interface CaseScore {
   caseId: string;
   expected: Verdict;
   got: Verdict;
-  correct: boolean;
-  fixVerified: boolean;
+  /** Verdict and, when UNSAFE, primary Hazard match the Label. */
+  verdictCorrect: boolean;
+  /** A fix was shipped and the harness proved it clean and schema-equivalent. */
+  fixProven: boolean;
+  /** The model said fix_verified: true but the harness could not confirm it. */
+  falseVerificationClaim: boolean;
+  /**
+   * Primary metric. The Review is something a DBA can act on: the verdict is right and,
+   * for a hazard that has a safe rewrite, the shipped fix is proven. DATA_LOSS has no
+   * schema-equivalent rewrite (the right action is to stop), so the verdict alone counts.
+   */
+  actionable: boolean;
   needsHumanReview: boolean;
   costUsd: number;
   wallMs: number;
 }
 
-/** Primary metric: exact match on Verdict and, when UNSAFE, on the primary Hazard. */
-export function scoreCase(result: ReviewResult, expected: Verdict): CaseScore {
+export function scoreCase(result: ReviewResult, expected: Verdict, proof: FixProof | null): CaseScore {
   const got: Verdict =
     result.review.verdict === "SAFE"
       ? { verdict: "SAFE" }
       : { verdict: "UNSAFE", hazard: result.review.hazard ?? "LOCK_BLOCKING" };
-  const correct =
-    expected.verdict === got.verdict &&
-    (expected.verdict === "SAFE" || got.verdict === "SAFE" || expected.hazard === got.hazard);
+  const verdictCorrect =
+    expected.verdict === got.verdict && (expected.verdict === "SAFE" || got.verdict === "SAFE" || expected.hazard === got.hazard);
+  const fixProven = proof !== null && proof.clean && proof.schemaEquivalent;
+  const fixRequired = expected.verdict === "UNSAFE" && expected.hazard !== "DATA_LOSS";
   return {
     caseId: result.caseId,
     expected,
     got,
-    correct,
-    fixVerified: result.review.fix_verified,
+    verdictCorrect,
+    fixProven,
+    falseVerificationClaim: result.review.fix_verified && !fixProven,
+    actionable: verdictCorrect && (!fixRequired || fixProven),
     needsHumanReview: result.needsHumanReview,
     costUsd: result.usage.costUsd,
     wallMs: result.wallMs,
@@ -35,10 +48,13 @@ export function scoreCase(result: ReviewResult, expected: Verdict): CaseScore {
 
 export interface Summary {
   cases: number;
-  correct: number;
-  accuracy: number;
-  unsafeCases: number;
-  fixesVerified: number;
+  actionable: number;
+  actionableRate: number;
+  verdictCorrect: number;
+  verdictAccuracy: number;
+  fixesRequired: number;
+  fixesProven: number;
+  falseVerificationClaims: number;
   escalated: number;
   totalCostUsd: number;
   meanCostUsd: number;
@@ -47,15 +63,19 @@ export interface Summary {
 
 export function summarize(scores: CaseScore[]): Summary {
   const n = scores.length;
-  const correct = scores.filter((s) => s.correct).length;
-  const unsafeCases = scores.filter((s) => s.expected.verdict === "UNSAFE").length;
+  const actionable = scores.filter((s) => s.actionable).length;
+  const verdictCorrect = scores.filter((s) => s.verdictCorrect).length;
+  const fixesRequired = scores.filter((s) => s.expected.verdict === "UNSAFE" && s.expected.hazard !== "DATA_LOSS").length;
   const totalCostUsd = scores.reduce((a, s) => a + s.costUsd, 0);
   return {
     cases: n,
-    correct,
-    accuracy: n === 0 ? 0 : correct / n,
-    unsafeCases,
-    fixesVerified: scores.filter((s) => s.expected.verdict === "UNSAFE" && s.fixVerified).length,
+    actionable,
+    actionableRate: n === 0 ? 0 : actionable / n,
+    verdictCorrect,
+    verdictAccuracy: n === 0 ? 0 : verdictCorrect / n,
+    fixesRequired,
+    fixesProven: scores.filter((s) => s.expected.verdict === "UNSAFE" && s.expected.hazard !== "DATA_LOSS" && s.fixProven).length,
+    falseVerificationClaims: scores.filter((s) => s.falseVerificationClaim).length,
     escalated: scores.filter((s) => s.needsHumanReview).length,
     totalCostUsd,
     meanCostUsd: n === 0 ? 0 : totalCostUsd / n,
