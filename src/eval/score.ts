@@ -1,5 +1,6 @@
 import type { Verdict } from "../harness/types.js";
 import type { ReviewResult } from "../review/schema.js";
+import type { Grounding } from "./grounding.js";
 import type { FixProof } from "./proof.js";
 
 export interface CaseScore {
@@ -19,11 +20,14 @@ export interface CaseScore {
    */
   actionable: boolean;
   needsHumanReview: boolean;
+  /** Numbers cited in the evidence bullets, and how many of them exist in a source the reviewer could read. */
+  numbersCited: number;
+  numbersUngrounded: number;
   costUsd: number;
   wallMs: number;
 }
 
-export function scoreCase(result: ReviewResult, expected: Verdict, proof: FixProof | null): CaseScore {
+export function scoreCase(result: ReviewResult, expected: Verdict, proof: FixProof | null, grounding?: Grounding): CaseScore {
   const got: Verdict =
     result.review.verdict === "SAFE"
       ? { verdict: "SAFE" }
@@ -41,6 +45,8 @@ export function scoreCase(result: ReviewResult, expected: Verdict, proof: FixPro
     falseVerificationClaim: result.review.fix_verified && !fixProven,
     actionable: verdictCorrect && (!fixRequired || fixProven),
     needsHumanReview: result.needsHumanReview,
+    numbersCited: grounding?.cited ?? 0,
+    numbersUngrounded: grounding?.ungrounded.length ?? 0,
     costUsd: result.usage.costUsd,
     wallMs: result.wallMs,
   };
@@ -56,6 +62,10 @@ export interface Summary {
   fixesProven: number;
   falseVerificationClaims: number;
   escalated: number;
+  numbersCited: number;
+  numbersUngrounded: number;
+  /** Reviews citing at least one number that exists in no readable source. */
+  reviewsWithFabricatedNumbers: number;
   totalCostUsd: number;
   meanCostUsd: number;
   meanWallMs: number;
@@ -77,6 +87,9 @@ export function summarize(scores: CaseScore[]): Summary {
     fixesProven: scores.filter((s) => s.expected.verdict === "UNSAFE" && s.expected.hazard !== "DATA_LOSS" && s.fixProven).length,
     falseVerificationClaims: scores.filter((s) => s.falseVerificationClaim).length,
     escalated: scores.filter((s) => s.needsHumanReview).length,
+    numbersCited: scores.reduce((a, s) => a + s.numbersCited, 0),
+    numbersUngrounded: scores.reduce((a, s) => a + s.numbersUngrounded, 0),
+    reviewsWithFabricatedNumbers: scores.filter((s) => s.numbersUngrounded > 0).length,
     totalCostUsd,
     meanCostUsd: n === 0 ? 0 : totalCostUsd / n,
     meanWallMs: n === 0 ? 0 : scores.reduce((a, s) => a + s.wallMs, 0) / n,
