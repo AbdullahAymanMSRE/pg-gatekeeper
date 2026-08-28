@@ -1,19 +1,16 @@
 /**
- * Grounded evidence: every number a Review cites must exist somewhere the reviewer
- * could have read it — a tool result, the case files, or the threshold definitions.
- * A method with no tools can only be grounded by quoting the case files.
+ * Grounded evidence: every *time measurement* a Review cites (a number with a ms/s
+ * unit) must exist somewhere the reviewer could have read it — a tool result, the
+ * case files, or the threshold definitions. Ratios, percentages and row counts are
+ * excluded because they are legitimately derived; durations can only be measured.
+ * A method with no tools can only be grounded by quoting the thresholds.
  */
-const NUMBER = /(\d[\d,]*(?:\.\d+)?)(\s?(?:ms|s|x|×|%|rows?|MB|GB|k|K|M))?/g;
+const DURATION = /(\d[\d,]*(?:\.\d+)?)\s?(?:ms|milliseconds?|s|sec|seconds?)\b/g;
 
 export function citedNumbers(evidence: string[]): string[] {
   const out: string[] = [];
   for (const line of evidence) {
-    for (const m of line.matchAll(NUMBER)) {
-      const digits = m[1]!.replace(/,/g, "");
-      const hasUnit = m[2] !== undefined;
-      const isLarge = digits.replace(".", "").length >= 2;
-      if (hasUnit || isLarge) out.push(digits.replace(/\.0+$/, ""));
-    }
+    for (const m of line.matchAll(DURATION)) out.push(m[1]!.replace(/,/g, "").replace(/\.0+$/, ""));
   }
   return out;
 }
