@@ -12,7 +12,9 @@ export const MODEL = (loadDotenv(), process.env.GATEKEEPER_MODEL ?? "claude-sonn
 export const EFFORT = (process.env.GATEKEEPER_EFFORT ?? "medium") as "low" | "medium" | "high";
 
 loadDotenv();
-export const client = new Anthropic();
+/** Identity-linked API keys must name the workspace on every request. */
+const workspaceId = process.env.ANTHROPIC_WORKSPACE_ID;
+export const client = new Anthropic(workspaceId ? { defaultHeaders: { "anthropic-workspace-id": workspaceId } } : {});
 
 export interface Caps {
   maxToolCalls: number;
