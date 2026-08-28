@@ -10,7 +10,13 @@ import type { Case, ColumnInfo, Evidence, Verdict } from "../harness/types.js";
 export interface FixProof {
   ran: boolean;
   clean: boolean;
+  /**
+   * The fix reaches the same end state as the original migration. When the original
+   * migration itself failed (e.g. SET NOT NULL over nulls) there is no end state to
+   * compare with, so equivalence cannot be judged and is not required.
+   */
   schemaEquivalent: boolean;
+  schemaCheck: "compared" | "skipped: original migration failed";
   hazard: Verdict;
   schemaDifferences: string[];
   migrationError: string | null;
@@ -29,11 +35,13 @@ export function schemaDifferences(expectedAfter: ColumnInfo[], actualAfter: Colu
 export async function proveFix(c: Case, fixedMigration: string, labelEvidence: Evidence): Promise<FixProof> {
   const e = await simulate(c, { migrationSql: fixedMigration });
   const hazard = classify(e, DEFAULT_THRESHOLDS);
-  const diffs = schemaDifferences(labelEvidence.columnsAfter, e.columnsAfter);
+  const originalFailed = labelEvidence.migrationError !== null;
+  const diffs = originalFailed ? [] : schemaDifferences(labelEvidence.columnsAfter, e.columnsAfter);
   return {
     ran: true,
     clean: hazard.verdict === "SAFE",
     schemaEquivalent: diffs.length === 0 && e.migrationError === null,
+    schemaCheck: originalFailed ? "skipped: original migration failed" : "compared",
     hazard,
     schemaDifferences: diffs,
     migrationError: e.migrationError,

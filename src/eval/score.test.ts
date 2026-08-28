@@ -14,7 +14,7 @@ const result = (verdict: "SAFE" | "UNSAFE", hazard: ReviewResult["review"]["haza
   retries: 0,
 });
 const proof = (clean: boolean, schemaEquivalent: boolean): FixProof => ({
-  ran: true, clean, schemaEquivalent, hazard: clean ? { verdict: "SAFE" } : { verdict: "UNSAFE", hazard: "LOCK_BLOCKING" },
+  ran: true, clean, schemaEquivalent, schemaCheck: "compared", hazard: clean ? { verdict: "SAFE" } : { verdict: "UNSAFE", hazard: "LOCK_BLOCKING" },
   schemaDifferences: [], migrationError: null, writerMaxStallMs: 3, maxTransactionMs: 10,
 });
 

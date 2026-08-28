@@ -164,10 +164,14 @@ export function verifyFixTool(ctx: CaseContext) {
     inputSchema: z.object({ fixed_migration: z.string() }),
     run: async (input) => {
       const [original, fixed] = await Promise.all([ctx.original(), simulate(ctx.c, { migrationSql: input.fixed_migration })]);
-      const diff = schemaDiff(original, fixed);
+      const originalFailed = original.migrationError !== null;
+      const diff = originalFailed ? [] : schemaDiff(original, fixed);
       const verdict = classify(fixed, DEFAULT_THRESHOLDS);
       return json({
-        schema_equivalent: diff.length === 0 && original.migrationError === null,
+        schema_equivalent: diff.length === 0 && fixed.migrationError === null,
+        schema_check: originalFailed
+          ? "skipped: the original migration fails on this data, so there is no end state to compare with; the fix must reach the migration's evident intent"
+          : "compared with the original migration's end state",
         schema_differences: diff,
         clean_under_thresholds: verdict.verdict === "SAFE",
         hazard_if_any: verdict.verdict === "UNSAFE" ? verdict.hazard : null,
