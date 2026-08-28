@@ -22,7 +22,8 @@ export interface Grounding {
 }
 
 export function groundEvidence(evidence: string[], sources: string[]): Grounding {
-  const haystack = sources.join("\n").replace(/,(?=\d{3})/g, "");
+  // "1,000,000" and "2 000" both mean 2000.
+  const haystack = sources.join("\n").replace(/(?<=\d)[,\s\u202f\u00a0](?=\d{3}\b)/g, "");
   const nums = citedNumbers(evidence);
   const ungrounded = nums.filter((n) => !new RegExp(`(?<![\\d.])${n.replace(".", "\\.")}(?![\\d])`).test(haystack));
   return { cited: nums.length, grounded: nums.length - ungrounded.length, ungrounded };

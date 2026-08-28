@@ -20,6 +20,9 @@ describe("groundEvidence", () => {
   test("a number that appears nowhere is reported", () => {
     expect(groundEvidence(["measured stall 2ms"], sources)).toEqual({ cited: 1, grounded: 0, ungrounded: ["2"] });
   });
+  test("thresholds written with digit-group spaces still ground", () => {
+    expect(groundEvidence(["one transaction held 3612ms, over the 2000ms limit"], ["longer than 2 000 ms", "3612"])).toEqual({ cited: 2, grounded: 2, ungrounded: [] });
+  });
   test("no numbers cited means nothing to check", () => {
     expect(groundEvidence(["rewrite under AccessExclusiveLock"], sources)).toEqual({ cited: 0, grounded: 0, ungrounded: [] });
   });
