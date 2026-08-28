@@ -70,8 +70,9 @@ export async function gatekeeper(c: Case, opts: GatekeeperOptions): Promise<Revi
         user: caseBlock,
         tools: [inspectSchemaTool(plannerCtx), runSqlTool(plannerCtx), explainQueryTool(plannerCtx), submitPlanTool(sink)],
         logger,
-        caps: { ...caps, maxToolCalls: 8 },
+        caps: { ...caps, maxToolCalls: 4 },
         budget: { ...budget, toolCalls: 0 },
+        ledger: { runId: opts.runId, caseId: c.id },
       });
       plan = sink.plan;
       await logger.log("planner", { type: "final", output: plan });
@@ -104,6 +105,7 @@ export async function gatekeeper(c: Case, opts: GatekeeperOptions): Promise<Revi
         logger,
         caps,
         budget: { ...budget, toolCalls: 0 },
+        ledger: { runId: opts.runId, caseId: c.id },
       });
       if (!sink.review) throw new CapExceeded("executor finished without submitting a review");
       review = sink.review;
@@ -131,8 +133,9 @@ export async function gatekeeper(c: Case, opts: GatekeeperOptions): Promise<Revi
           submitVerdictTool(check),
         ],
         logger,
-        caps: { ...caps, maxToolCalls: 10 },
+        caps: { ...caps, maxToolCalls: 6 },
         budget: { ...budget, toolCalls: 0 },
+        ledger: { runId: opts.runId, caseId: c.id },
       });
       const verdict = check.check ?? { accept: false, reason: "Verifier finished without submitting a verdict." };
       await logger.log("verifier", { type: "final", output: verdict });

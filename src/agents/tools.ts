@@ -48,6 +48,7 @@ const json = (v: unknown) => JSON.stringify(v);
 /** Compact, model-facing view of Evidence. */
 export function summarizeEvidence(e: Evidence) {
   return {
+    thresholds: DEFAULT_THRESHOLDS,
     migration: {
       duration_ms: e.migrationMs,
       error: e.migrationError,
@@ -74,7 +75,6 @@ export function summarizeEvidence(e: Evidence) {
       rows_seq_scanned: p.seqScanRows,
       rows_returned: p.rowsReturned,
     })),
-    columns_after: e.columnsAfter.map((c) => `${c.table}.${c.column} ${c.type}${c.nullable ? "" : " NOT NULL"}`),
   };
 }
 

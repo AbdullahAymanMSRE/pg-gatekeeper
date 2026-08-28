@@ -3,11 +3,13 @@ import { loadDotenv } from "../env.js";
 import type { BetaMessageParam, BetaToolUnion } from "@anthropic-ai/sdk/resources/beta.js";
 import type { BetaRunnableTool } from "@anthropic-ai/sdk/lib/tools/BetaRunnableTool.js";
 import { addUsage, emptyUsage } from "../eval/cost.js";
+import { assertBudget, record } from "../eval/ledger.js";
 import type { Usage } from "../review/schema.js";
 import type { Role, TrajectoryLogger } from "../trajectory/logger.js";
 
 /** ADR-0004: one model for every role and for the Baseline in scored Runs. */
-export const MODEL = (loadDotenv(), process.env.GATEKEEPER_MODEL ?? "claude-opus-5");
+export const MODEL = (loadDotenv(), process.env.GATEKEEPER_MODEL ?? "claude-sonnet-5");
+export const EFFORT = (process.env.GATEKEEPER_EFFORT ?? "medium") as "low" | "medium" | "high";
 
 loadDotenv();
 export const client = new Anthropic();
@@ -18,7 +20,7 @@ export interface Caps {
   maxWallMs: number;
 }
 
-export const DEFAULT_CAPS: Caps = { maxToolCalls: 25, maxCostUsd: 2.5, maxWallMs: 6 * 60_000 };
+export const DEFAULT_CAPS: Caps = { maxToolCalls: 12, maxCostUsd: 0.6, maxWallMs: 6 * 60_000 };
 
 export class CapExceeded extends Error {}
 
@@ -40,9 +42,12 @@ export async function runRole(opts: {
   logger: TrajectoryLogger;
   caps?: Caps;
   budget?: { usage: Usage; toolCalls: number; startedAt: number };
+  ledger?: { runId: string; caseId: string };
 }): Promise<RoleRun> {
   const caps = opts.caps ?? DEFAULT_CAPS;
   const budget = opts.budget ?? { usage: emptyUsage(), toolCalls: 0, startedAt: Date.now() };
+  await assertBudget();
+  const costBefore = budget.usage.costUsd;
   await opts.logger.log(opts.role, { type: "instructions", system: opts.system, user: opts.user });
 
   const tools = opts.tools.map((t) => wrapTool(t, opts.role, opts.logger, budget, caps));
@@ -57,10 +62,12 @@ export async function runRole(opts: {
       betas: ["server-side-fallback-2026-07-01"],
       fallbacks: "default",
       system: [{ type: "text", text: opts.system, cache_control: { type: "ephemeral" } }],
-      messages: [{ role: "user", content: opts.user }] satisfies BetaMessageParam[],
+      messages: [
+        { role: "user", content: [{ type: "text", text: opts.user, cache_control: { type: "ephemeral" } }] },
+      ] satisfies BetaMessageParam[],
       tools: tools as (BetaToolUnion | BetaRunnableTool<any>)[],
       thinking: { type: "adaptive", display: "summarized" },
-      output_config: { effort: "high" },
+      output_config: { effort: EFFORT },
     },
     { signal: controller.signal },
   );
@@ -93,6 +100,7 @@ export async function runRole(opts: {
     throw err;
   } finally {
     clearTimeout(timer);
+    if (opts.ledger) await record({ ...opts.ledger, role: opts.role, usd: budget.usage.costUsd - costBefore });
   }
   return { usage: budget.usage, toolCalls: budget.toolCalls, text };
 }
