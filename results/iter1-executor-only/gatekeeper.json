@@ -1,0 +1,1090 @@
+{
+  "runId": "iter1-executor-only",
+  "method": "gatekeeper",
+  "model": "claude-sonnet-5",
+  "promptHashes": {
+    "baseline": "94ec0e2dee26",
+    "planner": "6f0917989378",
+    "executor": "9aa59328a180",
+    "verifier": "523587b76e1c"
+  },
+  "thresholds": {
+    "writerStallMs": 50,
+    "transactionMs": 2000,
+    "latencyFactor": 5,
+    "seqScanRows": 100000
+  },
+  "options": {
+    "usePlanner": false,
+    "useVerifier": false
+  },
+  "startedAt": "2026-08-28T17:50:14.325Z",
+  "results": [
+    {
+      "caseId": "04-add-column-volatile-default",
+      "method": "gatekeeper",
+      "review": {
+        "verdict": "UNSAFE",
+        "hazard": "LOCK_BLOCKING",
+        "confidence": 0.97,
+        "summary": "Adding a NOT NULL column with a volatile DEFAULT (clock_timestamp()) forces a full-table rewrite under AccessExclusiveLock, stalling concurrent writers for over half a second.",
+        "evidence": [
+          "Original migration: concurrent writer max_stall_ms = 556ms (threshold 50ms)",
+          "Original migration held orders: AccessExclusiveLock for a 567ms transaction",
+          "Fixed version: max_stall_ms = 3ms, longest transaction 116ms, schema_equivalent=true"
+        ],
+        "fixed_migration": "-- Step 1: add nullable column, no default (fast, metadata-only)\nALTER TABLE orders ADD COLUMN first_seen_at timestamptz;\n\n-- Step 2: backfill in batches to avoid long transaction / locking\nDO $$\nDECLARE\n  batch_size int := 20000;\n  max_id bigint;\n  cur_id bigint := 0;\nBEGIN\n  SELECT max(id) INTO max_id FROM orders;\n  IF max_id IS NULL THEN\n    RETURN;\n  END IF;\n  WHILE cur_id <= max_id LOOP\n    UPDATE orders\n      SET first_seen_at = clock_timestamp()\n      WHERE id > cur_id AND id <= cur_id + batch_size\n        AND first_seen_at IS NULL;\n    cur_id := cur_id + batch_size;\n    COMMIT;\n  END LOOP;\nEND $$;\n\n-- Step 3: set default for new rows (no rewrite, just metadata)\nALTER TABLE orders ALTER COLUMN first_seen_at SET DEFAULT clock_timestamp();\n\n-- Step 4: add NOT NULL safely via NOT VALID check + validate, then SET NOT NULL\nALTER TABLE orders ADD CONSTRAINT first_seen_at_not_null CHECK (first_seen_at IS NOT NULL) NOT VALID;\nALTER TABLE orders VALIDATE CONSTRAINT first_seen_at_not_null;\nALTER TABLE orders ALTER COLUMN first_seen_at SET NOT NULL;\nALTER TABLE orders DROP CONSTRAINT first_seen_at_not_null;\n",
+        "fix_verified": true,
+        "action": "Replace the single ALTER TABLE ADD COLUMN ... NOT NULL DEFAULT clock_timestamp() with the batched add-nullable/backfill/validate approach before deploying."
+      },
+      "needsHumanReview": false,
+      "escalationReason": null,
+      "usage": {
+        "inputTokens": 8,
+        "outputTokens": 2057,
+        "cacheReadTokens": 14009,
+        "cacheWriteTokens": 6868,
+        "costUsd": 0.040557800000000005
+      },
+      "wallMs": 39995,
+      "retries": 0
+    },
+    {
+      "caseId": "01-add-nullable-column",
+      "method": "gatekeeper",
+      "review": {
+        "verdict": "SAFE",
+        "hazard": null,
+        "confidence": 0.98,
+        "summary": "Adding a nullable text column to orders is a metadata-only change and safe to run as-is.",
+        "evidence": [
+          "writer max stall 2ms (threshold 50ms)",
+          "migration duration 1ms, longest transaction 0ms (threshold 2000ms)",
+          "affected query plan unchanged (Bitmap Index Scan, 0 rows seq-scanned before and after)"
+        ],
+        "fixed_migration": null,
+        "fix_verified": false,
+        "action": "Ship the migration as written; no changes needed."
+      },
+      "needsHumanReview": false,
+      "escalationReason": null,
+      "usage": {
+        "inputTokens": 6,
+        "outputTokens": 535,
+        "cacheReadTokens": 8183,
+        "cacheWriteTokens": 4759,
+        "costUsd": 0.018896100000000002
+      },
+      "wallMs": 19016,
+      "retries": 0
+    },
+    {
+      "caseId": "02-create-index-concurrently",
+      "method": "gatekeeper",
+      "review": {
+        "verdict": "SAFE",
+        "hazard": null,
+        "confidence": 0.97,
+        "summary": "CREATE INDEX CONCURRENTLY on orders.status is safe to ship as-is.",
+        "evidence": [
+          "writer max stall 3ms (threshold 50ms)",
+          "lock held was ShareUpdateExclusiveLock only, no blocking lock",
+          "query plan unaffected (0 rows seq-scanned before/after, execution ~0.04-0.06ms)"
+        ],
+        "fixed_migration": null,
+        "fix_verified": false,
+        "action": "Merge the migration as written; no changes needed."
+      },
+      "needsHumanReview": false,
+      "escalationReason": null,
+      "usage": {
+        "inputTokens": 6,
+        "outputTokens": 568,
+        "cacheReadTokens": 11278,
+        "cacheWriteTokens": 1762,
+        "costUsd": 0.0123526
+      },
+      "wallMs": 18548,
+      "retries": 0
+    },
+    {
+      "caseId": "03-add-fk-not-valid",
+      "method": "gatekeeper",
+      "review": {
+        "verdict": "SAFE",
+        "hazard": null,
+        "confidence": 0.95,
+        "summary": "The NOT VALID + VALIDATE CONSTRAINT pattern for the new FK is safe as written.",
+        "evidence": [
+          "max writer stall 2ms (threshold 50ms)",
+          "longest transaction 91ms (threshold 2000ms)",
+          "constraint_validated_inline_on_populated_table=false, query plans unchanged (0 seq-scanned rows before/after)"
+        ],
+        "fixed_migration": null,
+        "fix_verified": false,
+        "action": "Ship the migration as-is; no changes needed."
+      },
+      "needsHumanReview": false,
+      "escalationReason": null,
+      "usage": {
+        "inputTokens": 6,
+        "outputTokens": 595,
+        "cacheReadTokens": 11542,
+        "cacheWriteTokens": 1920,
+        "costUsd": 0.0130704
+      },
+      "wallMs": 20154,
+      "retries": 0
+    },
+    {
+      "caseId": "05-alter-column-type",
+      "method": "gatekeeper",
+      "review": {
+        "verdict": "UNSAFE",
+        "hazard": "LOCK_BLOCKING",
+        "confidence": 0.97,
+        "summary": "ALTER COLUMN TYPE bigint rewrites the whole orders table under AccessExclusiveLock, stalling concurrent writers for 471ms (>50ms threshold).",
+        "evidence": [
+          "Original migration: writer max_stall_ms=471, exceeding the 50ms LOCK_BLOCKING threshold",
+          "Original migration takes AccessExclusiveLock on orders during the table rewrite",
+          "Fixed migration (add column + batched backfill + trigger sync + short rename transaction): writer max_stall_ms=2, longest transaction 109ms, schema_equivalent=true"
+        ],
+        "fixed_migration": "-- Add new bigint column, backfill in batches, swap via triggers to avoid long rewrite\nALTER TABLE orders ADD COLUMN total_cents_new bigint;\n\nDO $$\nDECLARE\n  batch_size int := 20000;\n  max_id bigint;\n  cur_id bigint := 0;\nBEGIN\n  SELECT max(id) INTO max_id FROM orders;\n  IF max_id IS NULL THEN\n    RETURN;\n  END IF;\n  WHILE cur_id <= max_id LOOP\n    UPDATE orders\n    SET total_cents_new = total_cents\n    WHERE id > cur_id AND id <= cur_id + batch_size\n      AND total_cents_new IS DISTINCT FROM total_cents;\n    cur_id := cur_id + batch_size;\n    COMMIT;\n  END LOOP;\nEND $$;\n\nCREATE OR REPLACE FUNCTION orders_sync_total_cents_new() RETURNS trigger AS $$\nBEGIN\n  NEW.total_cents_new := NEW.total_cents;\n  RETURN NEW;\nEND;\n$$ LANGUAGE plpgsql;\n\nCREATE TRIGGER orders_sync_total_cents_new_trg\nBEFORE INSERT OR UPDATE ON orders\nFOR EACH ROW EXECUTE FUNCTION orders_sync_total_cents_new();\n\nALTER TABLE orders ADD CONSTRAINT total_cents_new_not_null CHECK (total_cents_new IS NOT NULL) NOT VALID;\nALTER TABLE orders VALIDATE CONSTRAINT total_cents_new_not_null;\n\nBEGIN;\nALTER TABLE orders DROP COLUMN total_cents;\nALTER TABLE orders RENAME COLUMN total_cents_new TO total_cents;\nALTER TABLE orders ALTER COLUMN total_cents SET NOT NULL;\nCOMMIT;\n\nDROP TRIGGER IF EXISTS orders_sync_total_cents_new_trg ON orders;\nDROP FUNCTION IF EXISTS orders_sync_total_cents_new();\n",
+        "fix_verified": true,
+        "action": "Replace the direct ALTER COLUMN TYPE with the batched add-column/backfill/trigger-sync/rename approach before deploying to production."
+      },
+      "needsHumanReview": false,
+      "escalationReason": null,
+      "usage": {
+        "inputTokens": 8,
+        "outputTokens": 2271,
+        "cacheReadTokens": 17093,
+        "cacheWriteTokens": 4058,
+        "costUsd": 0.0362896
+      },
+      "wallMs": 41602,
+      "retries": 0
+    },
+    {
+      "caseId": "06-create-index-plain",
+      "method": "gatekeeper",
+      "review": {
+        "verdict": "UNSAFE",
+        "hazard": "LOCK_BLOCKING",
+        "confidence": 0.97,
+        "summary": "Plain CREATE INDEX on orders takes a ShareLock that stalls concurrent writers for 208ms (>50ms threshold); use CREATE INDEX CONCURRENTLY instead.",
+        "evidence": [
+          "Original migration: concurrent writer max_stall_ms=208, lock ShareLock held for ~201ms",
+          "Fixed migration (CONCURRENTLY): max_stall_ms=2, lock ShareUpdateExclusiveLock",
+          "Post-fix schema_equivalent=true and clean_under_thresholds=true, query plans unchanged (Bitmap Index Scan)"
+        ],
+        "fixed_migration": "CREATE INDEX CONCURRENTLY orders_status_idx ON orders (status);",
+        "fix_verified": true,
+        "action": "Replace the plain CREATE INDEX with CREATE INDEX CONCURRENTLY (run outside a transaction block) before deploying."
+      },
+      "needsHumanReview": false,
+      "escalationReason": null,
+      "usage": {
+        "inputTokens": 8,
+        "outputTokens": 778,
+        "cacheReadTokens": 16241,
+        "cacheWriteTokens": 2502,
+        "costUsd": 0.0172992
+      },
+      "wallMs": 26001,
+      "retries": 0
+    },
+    {
+      "caseId": "07-backfill-single-transaction",
+      "method": "gatekeeper",
+      "review": {
+        "verdict": "UNSAFE",
+        "hazard": "LONG_TRANSACTION",
+        "confidence": 0.97,
+        "summary": "The single-statement UPDATE backfilling all 1M rows runs in one 3.5s transaction and stalls the concurrent writer for 2.66s, exceeding both the 2000ms transaction and 50ms lock-stall thresholds.",
+        "evidence": [
+          "Original migration longest_transaction_ms=3496 (>2000ms threshold)",
+          "Concurrent writer max_stall_ms=2659 (>50ms threshold)",
+          "Batched fix reduced longest_transaction_ms to 23 and max_stall_ms to 4, with schema_equivalent=true"
+        ],
+        "fixed_migration": "DO $$\nDECLARE\n  batch_size int := 5000;\n  min_id bigint;\n  max_id bigint;\n  cur bigint;\nBEGIN\n  SELECT min(id), max(id) INTO min_id, max_id FROM orders;\n  IF min_id IS NULL THEN\n    RETURN;\n  END IF;\n  cur := min_id;\n  WHILE cur <= max_id LOOP\n    UPDATE orders SET notes = '' WHERE id >= cur AND id < cur + batch_size AND notes IS NULL;\n    cur := cur + batch_size;\n    COMMIT;\n  END LOOP;\nEND $$;\n",
+        "fix_verified": true,
+        "action": "Replace the single UPDATE with the batched DO-block backfill (5000-row chunks, COMMIT per batch) before deploying."
+      },
+      "needsHumanReview": false,
+      "escalationReason": null,
+      "usage": {
+        "inputTokens": 8,
+        "outputTokens": 1167,
+        "cacheReadTokens": 16488,
+        "cacheWriteTokens": 2909,
+        "costUsd": 0.0222561
+      },
+      "wallMs": 42070,
+      "retries": 0
+    },
+    {
+      "caseId": "08-drop-column",
+      "method": "gatekeeper",
+      "review": {
+        "verdict": "UNSAFE",
+        "hazard": "DATA_LOSS",
+        "confidence": 0.9,
+        "summary": "Dropping orders.notes irreversibly destroys the ~10% of rows that hold gift-wrap notes data with no backup, so it must not run until the data is archived or confirmed truly unused.",
+        "evidence": [
+          "simulate_migration reports dropped_columns: [\"orders.notes\"] with 1,000,000 rows in orders before/after (data not preserved)",
+          "Seed data shows ~10% of orders have non-null notes ('gift wrap') that would be permanently lost",
+          "Migration itself is fast (2ms) and non-blocking (max writer stall 2ms), so the only hazard is the irreversible column drop"
+        ],
+        "fixed_migration": "-- Step 1: archive the data before dropping, in case it's needed for audit/recovery\nCREATE TABLE orders_notes_archive AS\nSELECT id AS order_id, notes, now() AS archived_at\nFROM orders\nWHERE notes IS NOT NULL;\n\n-- Step 2: drop the column only after archiving (still a fast metadata-only op)\nALTER TABLE orders DROP COLUMN notes;\n",
+        "fix_verified": false,
+        "action": "Archive orders.notes (e.g. into orders_notes_archive) before dropping the column, or get explicit sign-off that the data is truly disposable, then re-run DROP COLUMN."
+      },
+      "needsHumanReview": false,
+      "escalationReason": null,
+      "usage": {
+        "inputTokens": 6,
+        "outputTokens": 919,
+        "cacheReadTokens": 11248,
+        "cacheWriteTokens": 2038,
+        "costUsd": 0.016546599999999998
+      },
+      "wallMs": 21079,
+      "retries": 0
+    },
+    {
+      "caseId": "09-narrow-varchar",
+      "method": "gatekeeper",
+      "review": {
+        "verdict": "UNSAFE",
+        "hazard": "DATA_LOSS",
+        "confidence": 0.97,
+        "summary": "Narrowing customers.email to varchar(20) silently truncates real data (max existing length 21 chars) via the USING left(email,20) clause, so do not run this migration as written.",
+        "evidence": [
+          "simulate_migration reported lossy_changes: customers.email longest existing value was 21 chars, column is now varchar(20)",
+          "run_sql confirms max(length(email))=21 in current data, i.e. at least one row is truncated silently",
+          "verify_fix attempt using a NOT VALID CHECK(length(email)<=20) instead of narrowing failed validation with 'violated by some row', proving the 20-char cap is incompatible with existing data without manual cleanup"
+        ],
+        "fixed_migration": "-- Cannot narrow the column to varchar(20) without losing data today.\n-- Step 1: add a NOT VALID check to enforce the cap for new/updated rows without a rewrite:\nALTER TABLE customers ADD CONSTRAINT customers_email_len_chk CHECK (length(email) <= 20) NOT VALID;\n-- Step 2: find and manually resolve/re-collect correct emails for violating rows, e.g.:\n-- SELECT id, email FROM customers WHERE length(email) > 20;\n-- (business must decide real values -- truncating is a data-loss/business decision, not a safe automatic DDL step)\n-- Step 3: once all rows satisfy the constraint, validate it (fast, no full rewrite lock):\nALTER TABLE customers VALIDATE CONSTRAINT customers_email_len_chk;\n-- Step 4: only after all data satisfies the cap, narrow the physical type in a low-traffic window:\nALTER TABLE customers ALTER COLUMN email TYPE varchar(20);\n",
+        "fix_verified": false,
+        "action": "Do not run the migration as-is; first identify and manually correct the 21+ character emails (there is at least one), then re-run a narrowing migration guarded by a validated NOT VALID check constraint instead of a silent USING left(email,20) truncation."
+      },
+      "needsHumanReview": false,
+      "escalationReason": null,
+      "usage": {
+        "inputTokens": 10,
+        "outputTokens": 2897,
+        "cacheReadTokens": 23499,
+        "cacheWriteTokens": 5021,
+        "costUsd": 0.04624230000000001
+      },
+      "wallMs": 55453,
+      "retries": 0
+    },
+    {
+      "caseId": "10-add-fk-validated-inline",
+      "method": "gatekeeper",
+      "review": {
+        "verdict": "UNSAFE",
+        "hazard": "CONSTRAINT_SCAN",
+        "confidence": 0.97,
+        "summary": "Adding the FK inline validates it against all 1M existing orders rows, blocking concurrent writers for ~95ms (stall) while holding ShareRowExclusiveLock — use NOT VALID + VALIDATE CONSTRAINT instead.",
+        "evidence": [
+          "constraint_validated_inline_on_populated_table:true with max writer stall 95ms (>50ms threshold)",
+          "Original migration takes ShareRowExclusiveLock on orders vs only ShareUpdateExclusiveLock in fixed version",
+          "Fixed version verified: writer stall dropped to 2ms, schema_equivalent:true, clean_under_thresholds:true"
+        ],
+        "fixed_migration": "ALTER TABLE orders ADD CONSTRAINT orders_customer_id_fkey2 FOREIGN KEY (customer_id) REFERENCES customers (id) NOT VALID;\nALTER TABLE orders VALIDATE CONSTRAINT orders_customer_id_fkey2;",
+        "fix_verified": true,
+        "action": "Deploy the NOT VALID + VALIDATE CONSTRAINT two-step version instead of the inline FK addition."
+      },
+      "needsHumanReview": false,
+      "escalationReason": null,
+      "usage": {
+        "inputTokens": 8,
+        "outputTokens": 1105,
+        "cacheReadTokens": 16631,
+        "cacheWriteTokens": 2852,
+        "costUsd": 0.021522200000000002
+      },
+      "wallMs": 27321,
+      "retries": 0
+    },
+    {
+      "caseId": "11-drop-unused-index",
+      "method": "gatekeeper",
+      "review": {
+        "verdict": "UNSAFE",
+        "hazard": "QUERY_REGRESSION",
+        "confidence": 0.95,
+        "summary": "The orders_customer_id_idx is not actually unused: dropping it forces recent_orders_for_customer to seq-scan the whole orders table (1,000,002 rows, 13.5ms vs 0.038ms, ~356x slower).",
+        "evidence": [
+          "Post-migration plan seq-scans 1,000,002 rows vs 0 before (threshold 100,000)",
+          "Query latency rose from 0.038ms to 13.543ms (~356x, threshold 5x)",
+          "Fix verified: adding orders(customer_id, created_at DESC) concurrently then dropping old index concurrently keeps writer stall at 3ms and restores Index Scan plan (0.019ms)"
+        ],
+        "fixed_migration": "CREATE INDEX CONCURRENTLY orders_customer_id_created_at_idx ON orders (customer_id, created_at DESC);\nDROP INDEX CONCURRENTLY orders_customer_id_idx;",
+        "fix_verified": true,
+        "action": "Do not drop orders_customer_id_idx as-is; instead concurrently create a covering index on (customer_id, created_at DESC) and then concurrently drop the old single-column index."
+      },
+      "needsHumanReview": false,
+      "escalationReason": null,
+      "usage": {
+        "inputTokens": 8,
+        "outputTokens": 1338,
+        "cacheReadTokens": 16655,
+        "cacheWriteTokens": 2941,
+        "costUsd": 0.0240795
+      },
+      "wallMs": 31647,
+      "retries": 0
+    },
+    {
+      "caseId": "12-index-not-used-by-query",
+      "method": "gatekeeper",
+      "review": {
+        "verdict": "UNSAFE",
+        "hazard": "QUERY_REGRESSION",
+        "confidence": 0.95,
+        "summary": "The new index on plain `status` doesn't match the report's `lower(status)` predicate, so the weekly paid-orders query still seq-scans all 2,000,000 rows after migration.",
+        "evidence": [
+          "Post-migration weekly_paid_report plan still shows Seq Scan with rows_seq_scanned=2,000,001 (execution 105ms)",
+          "Fixed index on (lower(status), created_at) drops seq scan to 0 rows and execution to 7.58ms",
+          "Writer stall unaffected in both cases (2ms), well under 50ms threshold"
+        ],
+        "fixed_migration": "CREATE INDEX CONCURRENTLY orders_status_lower_created_idx ON orders (lower(status), created_at);",
+        "fix_verified": true,
+        "action": "Replace the migration with an index on `(lower(status), created_at)` built CONCURRENTLY so the weekly report query can actually use it."
+      },
+      "needsHumanReview": false,
+      "escalationReason": null,
+      "usage": {
+        "inputTokens": 8,
+        "outputTokens": 914,
+        "cacheReadTokens": 17176,
+        "cacheWriteTokens": 3056,
+        "costUsd": 0.0202312
+      },
+      "wallMs": 37240,
+      "retries": 0
+    },
+    {
+      "caseId": "13-add-column-stable-default",
+      "method": "gatekeeper",
+      "review": {
+        "verdict": "SAFE",
+        "hazard": null,
+        "confidence": 0.95,
+        "summary": "Adding a NOT NULL timestamptz column with a constant-folded DEFAULT now() is a metadata-only change on PG11+ and is safe to apply as-is.",
+        "evidence": [
+          "migration duration 1ms, longest transaction 0ms",
+          "concurrent writer max stall 5ms (well under 50ms threshold)",
+          "no rows/tables/columns dropped; affected query plan unchanged (Bitmap Index Scan, 0 seq-scanned rows before and after)"
+        ],
+        "fixed_migration": null,
+        "fix_verified": false,
+        "action": "Apply the migration as written; no changes needed."
+      },
+      "needsHumanReview": false,
+      "escalationReason": null,
+      "usage": {
+        "inputTokens": 6,
+        "outputTokens": 547,
+        "cacheReadTokens": 11307,
+        "cacheWriteTokens": 1802,
+        "costUsd": 0.0122484
+      },
+      "wallMs": 15219,
+      "retries": 0
+    },
+    {
+      "caseId": "14-narrow-varchar-fits",
+      "method": "gatekeeper",
+      "review": {
+        "verdict": "SAFE",
+        "hazard": null,
+        "confidence": 0.95,
+        "summary": "Narrowing customers.email to varchar(40) is safe since max existing email length is 21 chars and the ALTER completes well under all hazard thresholds.",
+        "evidence": [
+          "max(length(email))=21, well under 40-char cap",
+          "writer stall max 32ms (<50ms threshold), longest transaction 35ms (<2000ms)",
+          "query plans unchanged before/after: Index Scan for customer_by_email, Bitmap Heap Scan for recent_orders, 0 rows seq-scanned"
+        ],
+        "fixed_migration": null,
+        "fix_verified": false,
+        "action": "Ship the migration as written; no changes needed."
+      },
+      "needsHumanReview": false,
+      "escalationReason": null,
+      "usage": {
+        "inputTokens": 6,
+        "outputTokens": 662,
+        "cacheReadTokens": 11646,
+        "cacheWriteTokens": 2121,
+        "costUsd": 0.0142637
+      },
+      "wallMs": 16073,
+      "retries": 0
+    },
+    {
+      "caseId": "15-set-not-null-with-nulls",
+      "method": "gatekeeper",
+      "review": {
+        "verdict": "UNSAFE",
+        "hazard": "DATA_LOSS",
+        "confidence": 0.95,
+        "summary": "ALTER TABLE orders ALTER COLUMN notes SET NOT NULL fails outright because ~90% of existing rows have notes IS NULL, aborting the migration.",
+        "evidence": [
+          "simulate_migration errored: \"column \\\"notes\\\" of relation \\\"orders\\\" contains null values\"",
+          "1,000,000 seeded orders rows, ~90% have notes IS NULL per seed.sql distribution",
+          "Fix (batched backfill + NOT VALID/VALIDATE/SET NOT NULL) ran clean: longest txn 87ms, writer max stall 2ms, no lock_timeout errors"
+        ],
+        "fixed_migration": "DO $$\nDECLARE\n  batch_size int := 20000;\n  min_id bigint;\n  max_id bigint;\n  cur_id bigint;\nBEGIN\n  SELECT min(id), max(id) INTO min_id, max_id FROM orders;\n  IF min_id IS NULL THEN\n    RETURN;\n  END IF;\n  cur_id := min_id;\n  WHILE cur_id <= max_id LOOP\n    UPDATE orders\n    SET notes = ''\n    WHERE id >= cur_id AND id < cur_id + batch_size\n      AND notes IS NULL;\n    COMMIT;\n    cur_id := cur_id + batch_size;\n  END LOOP;\nEND $$;\n\nALTER TABLE orders ADD CONSTRAINT orders_notes_not_null CHECK (notes IS NOT NULL) NOT VALID;\nALTER TABLE orders VALIDATE CONSTRAINT orders_notes_not_null;\nALTER TABLE orders ALTER COLUMN notes SET NOT NULL;\nALTER TABLE orders DROP CONSTRAINT orders_notes_not_null;\n",
+        "fix_verified": false,
+        "action": "Backfill existing NULL notes to a sentinel value (e.g. empty string) in small batched, committed transactions before running SET NOT NULL, using NOT VALID + VALIDATE CONSTRAINT to avoid a blocking full-table scan."
+      },
+      "needsHumanReview": false,
+      "escalationReason": null,
+      "usage": {
+        "inputTokens": 8,
+        "outputTokens": 3292,
+        "cacheReadTokens": 17266,
+        "cacheWriteTokens": 4859,
+        "costUsd": 0.0485367
+      },
+      "wallMs": 53610,
+      "retries": 0
+    },
+    {
+      "caseId": "16-set-not-null-no-nulls",
+      "method": "gatekeeper",
+      "review": {
+        "verdict": "SAFE",
+        "hazard": null,
+        "confidence": 0.97,
+        "summary": "Adding NOT NULL to customers.email is safe: fast, no stall, no data loss.",
+        "evidence": [
+          "migration duration 4ms with 0ms longest transaction",
+          "concurrent writer max stall 2ms (threshold 50ms)",
+          "row counts unchanged (20000 customers, 1000000 orders), no lossy changes"
+        ],
+        "fixed_migration": null,
+        "fix_verified": false,
+        "action": "Apply the migration as written; no changes needed."
+      },
+      "needsHumanReview": false,
+      "escalationReason": null,
+      "usage": {
+        "inputTokens": 6,
+        "outputTokens": 603,
+        "cacheReadTokens": 11548,
+        "cacheWriteTokens": 1946,
+        "costUsd": 0.0132166
+      },
+      "wallMs": 16479,
+      "retries": 0
+    },
+    {
+      "caseId": "17-drop-index-unused",
+      "method": "gatekeeper",
+      "review": {
+        "verdict": "SAFE",
+        "hazard": null,
+        "confidence": 0.97,
+        "summary": "Dropping orders_status_idx is safe: it's a metadata-only change with negligible lock time and the affected query doesn't use it.",
+        "evidence": [
+          "writer max stall 2ms (threshold 50ms)",
+          "migration duration 2ms, longest transaction 0ms (threshold 2000ms)",
+          "recent_orders_for_customer query unchanged: 0 rows seq-scanned before and after, still uses Bitmap Index Scan via customer_id index"
+        ],
+        "fixed_migration": null,
+        "fix_verified": false,
+        "action": "Proceed with the DROP INDEX as written; no changes needed."
+      },
+      "needsHumanReview": false,
+      "escalationReason": null,
+      "usage": {
+        "inputTokens": 6,
+        "outputTokens": 627,
+        "cacheReadTokens": 11305,
+        "cacheWriteTokens": 1813,
+        "costUsd": 0.0130755
+      },
+      "wallMs": 16385,
+      "retries": 0
+    }
+  ],
+  "scores": [
+    {
+      "caseId": "04-add-column-volatile-default",
+      "expected": {
+        "verdict": "UNSAFE",
+        "hazard": "LOCK_BLOCKING"
+      },
+      "got": {
+        "verdict": "UNSAFE",
+        "hazard": "LOCK_BLOCKING"
+      },
+      "verdictCorrect": true,
+      "fixProven": true,
+      "falseVerificationClaim": false,
+      "actionable": true,
+      "needsHumanReview": false,
+      "numbersCited": 5,
+      "numbersUngrounded": 0,
+      "costUsd": 0.040557800000000005,
+      "wallMs": 39995
+    },
+    {
+      "caseId": "01-add-nullable-column",
+      "expected": {
+        "verdict": "SAFE"
+      },
+      "got": {
+        "verdict": "SAFE"
+      },
+      "verdictCorrect": true,
+      "fixProven": false,
+      "falseVerificationClaim": false,
+      "actionable": true,
+      "needsHumanReview": false,
+      "numbersCited": 5,
+      "numbersUngrounded": 0,
+      "costUsd": 0.018896100000000002,
+      "wallMs": 19016
+    },
+    {
+      "caseId": "02-create-index-concurrently",
+      "expected": {
+        "verdict": "SAFE"
+      },
+      "got": {
+        "verdict": "SAFE"
+      },
+      "verdictCorrect": true,
+      "fixProven": false,
+      "falseVerificationClaim": false,
+      "actionable": true,
+      "needsHumanReview": false,
+      "numbersCited": 3,
+      "numbersUngrounded": 1,
+      "costUsd": 0.0123526,
+      "wallMs": 18548
+    },
+    {
+      "caseId": "03-add-fk-not-valid",
+      "expected": {
+        "verdict": "SAFE"
+      },
+      "got": {
+        "verdict": "SAFE"
+      },
+      "verdictCorrect": true,
+      "fixProven": false,
+      "falseVerificationClaim": false,
+      "actionable": true,
+      "needsHumanReview": false,
+      "numbersCited": 4,
+      "numbersUngrounded": 0,
+      "costUsd": 0.0130704,
+      "wallMs": 20154
+    },
+    {
+      "caseId": "05-alter-column-type",
+      "expected": {
+        "verdict": "UNSAFE",
+        "hazard": "LOCK_BLOCKING"
+      },
+      "got": {
+        "verdict": "UNSAFE",
+        "hazard": "LOCK_BLOCKING"
+      },
+      "verdictCorrect": true,
+      "fixProven": true,
+      "falseVerificationClaim": false,
+      "actionable": true,
+      "needsHumanReview": false,
+      "numbersCited": 2,
+      "numbersUngrounded": 0,
+      "costUsd": 0.0362896,
+      "wallMs": 41602
+    },
+    {
+      "caseId": "06-create-index-plain",
+      "expected": {
+        "verdict": "UNSAFE",
+        "hazard": "LOCK_BLOCKING"
+      },
+      "got": {
+        "verdict": "UNSAFE",
+        "hazard": "LOCK_BLOCKING"
+      },
+      "verdictCorrect": true,
+      "fixProven": true,
+      "falseVerificationClaim": false,
+      "actionable": true,
+      "needsHumanReview": false,
+      "numbersCited": 1,
+      "numbersUngrounded": 0,
+      "costUsd": 0.0172992,
+      "wallMs": 26001
+    },
+    {
+      "caseId": "07-backfill-single-transaction",
+      "expected": {
+        "verdict": "UNSAFE",
+        "hazard": "LONG_TRANSACTION"
+      },
+      "got": {
+        "verdict": "UNSAFE",
+        "hazard": "LONG_TRANSACTION"
+      },
+      "verdictCorrect": true,
+      "fixProven": true,
+      "falseVerificationClaim": false,
+      "actionable": true,
+      "needsHumanReview": false,
+      "numbersCited": 2,
+      "numbersUngrounded": 0,
+      "costUsd": 0.0222561,
+      "wallMs": 42070
+    },
+    {
+      "caseId": "08-drop-column",
+      "expected": {
+        "verdict": "UNSAFE",
+        "hazard": "DATA_LOSS"
+      },
+      "got": {
+        "verdict": "UNSAFE",
+        "hazard": "DATA_LOSS"
+      },
+      "verdictCorrect": true,
+      "fixProven": false,
+      "falseVerificationClaim": false,
+      "actionable": true,
+      "needsHumanReview": false,
+      "numbersCited": 2,
+      "numbersUngrounded": 0,
+      "costUsd": 0.016546599999999998,
+      "wallMs": 21079
+    },
+    {
+      "caseId": "09-narrow-varchar",
+      "expected": {
+        "verdict": "UNSAFE",
+        "hazard": "DATA_LOSS"
+      },
+      "got": {
+        "verdict": "UNSAFE",
+        "hazard": "DATA_LOSS"
+      },
+      "verdictCorrect": true,
+      "fixProven": false,
+      "falseVerificationClaim": false,
+      "actionable": true,
+      "needsHumanReview": false,
+      "numbersCited": 0,
+      "numbersUngrounded": 0,
+      "costUsd": 0.04624230000000001,
+      "wallMs": 55453
+    },
+    {
+      "caseId": "10-add-fk-validated-inline",
+      "expected": {
+        "verdict": "UNSAFE",
+        "hazard": "CONSTRAINT_SCAN"
+      },
+      "got": {
+        "verdict": "UNSAFE",
+        "hazard": "CONSTRAINT_SCAN"
+      },
+      "verdictCorrect": true,
+      "fixProven": true,
+      "falseVerificationClaim": false,
+      "actionable": true,
+      "needsHumanReview": false,
+      "numbersCited": 3,
+      "numbersUngrounded": 0,
+      "costUsd": 0.021522200000000002,
+      "wallMs": 27321
+    },
+    {
+      "caseId": "11-drop-unused-index",
+      "expected": {
+        "verdict": "UNSAFE",
+        "hazard": "QUERY_REGRESSION"
+      },
+      "got": {
+        "verdict": "UNSAFE",
+        "hazard": "QUERY_REGRESSION"
+      },
+      "verdictCorrect": true,
+      "fixProven": true,
+      "falseVerificationClaim": false,
+      "actionable": true,
+      "needsHumanReview": false,
+      "numbersCited": 4,
+      "numbersUngrounded": 0,
+      "costUsd": 0.0240795,
+      "wallMs": 31647
+    },
+    {
+      "caseId": "12-index-not-used-by-query",
+      "expected": {
+        "verdict": "UNSAFE",
+        "hazard": "QUERY_REGRESSION"
+      },
+      "got": {
+        "verdict": "UNSAFE",
+        "hazard": "QUERY_REGRESSION"
+      },
+      "verdictCorrect": true,
+      "fixProven": true,
+      "falseVerificationClaim": false,
+      "actionable": true,
+      "needsHumanReview": false,
+      "numbersCited": 4,
+      "numbersUngrounded": 0,
+      "costUsd": 0.0202312,
+      "wallMs": 37240
+    },
+    {
+      "caseId": "13-add-column-stable-default",
+      "expected": {
+        "verdict": "SAFE"
+      },
+      "got": {
+        "verdict": "SAFE"
+      },
+      "verdictCorrect": true,
+      "fixProven": false,
+      "falseVerificationClaim": false,
+      "actionable": true,
+      "needsHumanReview": false,
+      "numbersCited": 4,
+      "numbersUngrounded": 0,
+      "costUsd": 0.0122484,
+      "wallMs": 15219
+    },
+    {
+      "caseId": "14-narrow-varchar-fits",
+      "expected": {
+        "verdict": "SAFE"
+      },
+      "got": {
+        "verdict": "SAFE"
+      },
+      "verdictCorrect": true,
+      "fixProven": false,
+      "falseVerificationClaim": false,
+      "actionable": true,
+      "needsHumanReview": false,
+      "numbersCited": 4,
+      "numbersUngrounded": 0,
+      "costUsd": 0.0142637,
+      "wallMs": 16073
+    },
+    {
+      "caseId": "15-set-not-null-with-nulls",
+      "expected": {
+        "verdict": "UNSAFE",
+        "hazard": "DATA_LOSS"
+      },
+      "got": {
+        "verdict": "UNSAFE",
+        "hazard": "DATA_LOSS"
+      },
+      "verdictCorrect": true,
+      "fixProven": true,
+      "falseVerificationClaim": false,
+      "actionable": true,
+      "needsHumanReview": false,
+      "numbersCited": 2,
+      "numbersUngrounded": 0,
+      "costUsd": 0.0485367,
+      "wallMs": 53610
+    },
+    {
+      "caseId": "16-set-not-null-no-nulls",
+      "expected": {
+        "verdict": "SAFE"
+      },
+      "got": {
+        "verdict": "SAFE"
+      },
+      "verdictCorrect": true,
+      "fixProven": false,
+      "falseVerificationClaim": false,
+      "actionable": true,
+      "needsHumanReview": false,
+      "numbersCited": 4,
+      "numbersUngrounded": 0,
+      "costUsd": 0.0132166,
+      "wallMs": 16479
+    },
+    {
+      "caseId": "17-drop-index-unused",
+      "expected": {
+        "verdict": "SAFE"
+      },
+      "got": {
+        "verdict": "SAFE"
+      },
+      "verdictCorrect": true,
+      "fixProven": false,
+      "falseVerificationClaim": false,
+      "actionable": true,
+      "needsHumanReview": false,
+      "numbersCited": 5,
+      "numbersUngrounded": 0,
+      "costUsd": 0.0130755,
+      "wallMs": 16385
+    }
+  ],
+  "summary": {
+    "cases": 17,
+    "actionable": 17,
+    "actionableRate": 1,
+    "verdictCorrect": 17,
+    "verdictAccuracy": 1,
+    "fixesRequired": 7,
+    "fixesProven": 7,
+    "falseVerificationClaims": 0,
+    "escalated": 0,
+    "numbersCited": 54,
+    "numbersUngrounded": 1,
+    "reviewsWithFabricatedNumbers": 1,
+    "totalCostUsd": 0.39068450000000005,
+    "meanCostUsd": 0.02298144117647059,
+    "meanWallMs": 29287.764705882353
+  },
+  "proofs": {
+    "04-add-column-volatile-default": {
+      "ran": true,
+      "clean": true,
+      "schemaEquivalent": true,
+      "hazard": {
+        "verdict": "SAFE"
+      },
+      "schemaDifferences": [],
+      "migrationError": null,
+      "writerMaxStallMs": 3,
+      "maxTransactionMs": 104
+    },
+    "01-add-nullable-column": null,
+    "02-create-index-concurrently": null,
+    "03-add-fk-not-valid": null,
+    "05-alter-column-type": {
+      "ran": true,
+      "clean": true,
+      "schemaEquivalent": true,
+      "hazard": {
+        "verdict": "SAFE"
+      },
+      "schemaDifferences": [],
+      "migrationError": null,
+      "writerMaxStallMs": 13,
+      "maxTransactionMs": 98
+    },
+    "06-create-index-plain": {
+      "ran": true,
+      "clean": true,
+      "schemaEquivalent": true,
+      "hazard": {
+        "verdict": "SAFE"
+      },
+      "schemaDifferences": [],
+      "migrationError": null,
+      "writerMaxStallMs": 2,
+      "maxTransactionMs": 267
+    },
+    "07-backfill-single-transaction": {
+      "ran": true,
+      "clean": true,
+      "schemaEquivalent": true,
+      "hazard": {
+        "verdict": "SAFE"
+      },
+      "schemaDifferences": [],
+      "migrationError": null,
+      "writerMaxStallMs": 7,
+      "maxTransactionMs": 22
+    },
+    "08-drop-column": {
+      "ran": true,
+      "clean": false,
+      "schemaEquivalent": false,
+      "hazard": {
+        "verdict": "UNSAFE",
+        "hazard": "DATA_LOSS"
+      },
+      "schemaDifferences": [
+        "extra: orders_notes_archive.order_id bigint",
+        "extra: orders_notes_archive.notes text",
+        "extra: orders_notes_archive.archived_at timestamp with time zone"
+      ],
+      "migrationError": null,
+      "writerMaxStallMs": 2,
+      "maxTransactionMs": 70
+    },
+    "09-narrow-varchar": {
+      "ran": true,
+      "clean": false,
+      "schemaEquivalent": false,
+      "hazard": {
+        "verdict": "UNSAFE",
+        "hazard": "DATA_LOSS"
+      },
+      "schemaDifferences": [
+        "missing: customers.email character varying(20) NOT NULL",
+        "extra: customers.email text NOT NULL"
+      ],
+      "migrationError": "check constraint \"customers_email_len_chk\" of relation \"customers\" is violated by some row",
+      "writerMaxStallMs": 2,
+      "maxTransactionMs": 0
+    },
+    "10-add-fk-validated-inline": {
+      "ran": true,
+      "clean": true,
+      "schemaEquivalent": true,
+      "hazard": {
+        "verdict": "SAFE"
+      },
+      "schemaDifferences": [],
+      "migrationError": null,
+      "writerMaxStallMs": 3,
+      "maxTransactionMs": 93
+    },
+    "11-drop-unused-index": {
+      "ran": true,
+      "clean": true,
+      "schemaEquivalent": true,
+      "hazard": {
+        "verdict": "SAFE"
+      },
+      "schemaDifferences": [],
+      "migrationError": null,
+      "writerMaxStallMs": 3,
+      "maxTransactionMs": 283
+    },
+    "12-index-not-used-by-query": {
+      "ran": true,
+      "clean": true,
+      "schemaEquivalent": true,
+      "hazard": {
+        "verdict": "SAFE"
+      },
+      "schemaDifferences": [],
+      "migrationError": null,
+      "writerMaxStallMs": 12,
+      "maxTransactionMs": 1046
+    },
+    "13-add-column-stable-default": null,
+    "14-narrow-varchar-fits": null,
+    "16-set-not-null-no-nulls": null,
+    "17-drop-index-unused": null,
+    "15-set-not-null-with-nulls": {
+      "ran": true,
+      "clean": true,
+      "schemaEquivalent": true,
+      "schemaCheck": "skipped: original migration failed",
+      "hazard": {
+        "verdict": "SAFE"
+      },
+      "schemaDifferences": [],
+      "migrationError": null,
+      "writerMaxStallMs": 4,
+      "maxTransactionMs": 93
+    }
+  },
+  "grounding": {
+    "04-add-column-volatile-default": {
+      "cited": 5,
+      "grounded": 5,
+      "ungrounded": []
+    },
+    "01-add-nullable-column": {
+      "cited": 5,
+      "grounded": 5,
+      "ungrounded": []
+    },
+    "02-create-index-concurrently": {
+      "cited": 3,
+      "grounded": 2,
+      "ungrounded": [
+        "0.06"
+      ]
+    },
+    "03-add-fk-not-valid": {
+      "cited": 4,
+      "grounded": 4,
+      "ungrounded": []
+    },
+    "05-alter-column-type": {
+      "cited": 2,
+      "grounded": 2,
+      "ungrounded": []
+    },
+    "06-create-index-plain": {
+      "cited": 1,
+      "grounded": 1,
+      "ungrounded": []
+    },
+    "07-backfill-single-transaction": {
+      "cited": 2,
+      "grounded": 2,
+      "ungrounded": []
+    },
+    "08-drop-column": {
+      "cited": 2,
+      "grounded": 2,
+      "ungrounded": []
+    },
+    "09-narrow-varchar": {
+      "cited": 0,
+      "grounded": 0,
+      "ungrounded": []
+    },
+    "10-add-fk-validated-inline": {
+      "cited": 3,
+      "grounded": 3,
+      "ungrounded": []
+    },
+    "11-drop-unused-index": {
+      "cited": 4,
+      "grounded": 4,
+      "ungrounded": []
+    },
+    "12-index-not-used-by-query": {
+      "cited": 4,
+      "grounded": 4,
+      "ungrounded": []
+    },
+    "13-add-column-stable-default": {
+      "cited": 4,
+      "grounded": 4,
+      "ungrounded": []
+    },
+    "14-narrow-varchar-fits": {
+      "cited": 4,
+      "grounded": 4,
+      "ungrounded": []
+    },
+    "15-set-not-null-with-nulls": {
+      "cited": 2,
+      "grounded": 2,
+      "ungrounded": []
+    },
+    "16-set-not-null-no-nulls": {
+      "cited": 4,
+      "grounded": 4,
+      "ungrounded": []
+    },
+    "17-drop-index-unused": {
+      "cited": 5,
+      "grounded": 5,
+      "ungrounded": []
+    }
+  }
+}

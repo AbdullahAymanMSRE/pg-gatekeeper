@@ -1,6 +1,6 @@
 node_modules/
-results/
-trajectories/*/
-!trajectories/.gitkeep
 .env
 *.log
+# scratch runs
+results/smoke/
+trajectories/smoke/

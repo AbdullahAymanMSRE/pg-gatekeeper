@@ -1,0 +1,551 @@
+{
+  "totalUsd": 2.073949500000001,
+  "entries": [
+    {
+      "at": "2026-08-28T17:37:08.893Z",
+      "runId": "smoke",
+      "caseId": "04-add-column-volatile-default",
+      "role": "planner",
+      "usd": 0.032226
+    },
+    {
+      "at": "2026-08-28T17:41:57.108Z",
+      "runId": "smoke",
+      "caseId": "04-add-column-volatile-default",
+      "role": "executor",
+      "usd": 0.36875559999999996
+    },
+    {
+      "at": "2026-08-28T17:42:31.579Z",
+      "runId": "smoke",
+      "caseId": "04-add-column-volatile-default",
+      "role": "verifier",
+      "usd": 0.034346800000000004
+    },
+    {
+      "at": "2026-08-28T17:48:32.627Z",
+      "runId": "iter0-baseline",
+      "caseId": "01-add-nullable-column",
+      "role": "baseline",
+      "usd": 0.006932
+    },
+    {
+      "at": "2026-08-28T17:48:36.606Z",
+      "runId": "iter0-baseline",
+      "caseId": "02-create-index-concurrently",
+      "role": "baseline",
+      "usd": 0.007134
+    },
+    {
+      "at": "2026-08-28T17:48:50.708Z",
+      "runId": "iter0-baseline",
+      "caseId": "03-add-fk-not-valid",
+      "role": "baseline",
+      "usd": 0.00872
+    },
+    {
+      "at": "2026-08-28T17:48:57.730Z",
+      "runId": "iter0-baseline",
+      "caseId": "04-add-column-volatile-default",
+      "role": "baseline",
+      "usd": 0.011154
+    },
+    {
+      "at": "2026-08-28T17:49:10.004Z",
+      "runId": "iter0-baseline",
+      "caseId": "05-alter-column-type",
+      "role": "baseline",
+      "usd": 0.016836
+    },
+    {
+      "at": "2026-08-28T17:49:18.261Z",
+      "runId": "iter0-baseline",
+      "caseId": "06-create-index-plain",
+      "role": "baseline",
+      "usd": 0.008642
+    },
+    {
+      "at": "2026-08-28T17:49:24.072Z",
+      "runId": "iter0-baseline",
+      "caseId": "07-backfill-single-transaction",
+      "role": "baseline",
+      "usd": 0.009224
+    },
+    {
+      "at": "2026-08-28T17:49:32.638Z",
+      "runId": "iter0-baseline",
+      "caseId": "08-drop-column",
+      "role": "baseline",
+      "usd": 0.011552
+    },
+    {
+      "at": "2026-08-28T17:49:42.752Z",
+      "runId": "iter0-baseline",
+      "caseId": "09-narrow-varchar",
+      "role": "baseline",
+      "usd": 0.013246
+    },
+    {
+      "at": "2026-08-28T17:49:48.822Z",
+      "runId": "iter0-baseline",
+      "caseId": "10-add-fk-validated-inline",
+      "role": "baseline",
+      "usd": 0.009124
+    },
+    {
+      "at": "2026-08-28T17:50:01.854Z",
+      "runId": "iter0-baseline",
+      "caseId": "11-drop-unused-index",
+      "role": "baseline",
+      "usd": 0.015572
+    },
+    {
+      "at": "2026-08-28T17:50:10.854Z",
+      "runId": "iter0-baseline",
+      "caseId": "12-index-not-used-by-query",
+      "role": "baseline",
+      "usd": 0.012214
+    },
+    {
+      "at": "2026-08-28T17:50:54.322Z",
+      "runId": "iter1-executor-only",
+      "caseId": "04-add-column-volatile-default",
+      "role": "executor",
+      "usd": 0.040557800000000005
+    },
+    {
+      "at": "2026-08-28T17:56:39.058Z",
+      "runId": "iter0-baseline",
+      "caseId": "13-add-column-stable-default",
+      "role": "baseline",
+      "usd": 0.011562
+    },
+    {
+      "at": "2026-08-28T17:56:59.279Z",
+      "runId": "iter0-baseline",
+      "caseId": "14-narrow-varchar-fits",
+      "role": "baseline",
+      "usd": 0.023674
+    },
+    {
+      "at": "2026-08-28T17:57:10.730Z",
+      "runId": "iter0-baseline",
+      "caseId": "15-set-not-null-with-nulls",
+      "role": "baseline",
+      "usd": 0.012402
+    },
+    {
+      "at": "2026-08-28T17:57:40.470Z",
+      "runId": "iter0-baseline",
+      "caseId": "16-set-not-null-no-nulls",
+      "role": "baseline",
+      "usd": 0.0127
+    },
+    {
+      "at": "2026-08-28T17:57:55.111Z",
+      "runId": "iter0-baseline",
+      "caseId": "17-drop-index-unused",
+      "role": "baseline",
+      "usd": 0.015726
+    },
+    {
+      "at": "2026-08-28T17:58:38.662Z",
+      "runId": "iter1-executor-only",
+      "caseId": "01-add-nullable-column",
+      "role": "executor",
+      "usd": 0.018896100000000002
+    },
+    {
+      "at": "2026-08-28T17:58:57.214Z",
+      "runId": "iter1-executor-only",
+      "caseId": "02-create-index-concurrently",
+      "role": "executor",
+      "usd": 0.0123526
+    },
+    {
+      "at": "2026-08-28T17:59:17.377Z",
+      "runId": "iter1-executor-only",
+      "caseId": "03-add-fk-not-valid",
+      "role": "executor",
+      "usd": 0.0130704
+    },
+    {
+      "at": "2026-08-28T17:59:58.983Z",
+      "runId": "iter1-executor-only",
+      "caseId": "05-alter-column-type",
+      "role": "executor",
+      "usd": 0.0362896
+    },
+    {
+      "at": "2026-08-28T18:00:35.771Z",
+      "runId": "iter1-executor-only",
+      "caseId": "06-create-index-plain",
+      "role": "executor",
+      "usd": 0.0172992
+    },
+    {
+      "at": "2026-08-28T18:01:24.865Z",
+      "runId": "iter1-executor-only",
+      "caseId": "07-backfill-single-transaction",
+      "role": "executor",
+      "usd": 0.0222561
+    },
+    {
+      "at": "2026-08-28T18:01:56.336Z",
+      "runId": "iter1-executor-only",
+      "caseId": "08-drop-column",
+      "role": "executor",
+      "usd": 0.016546599999999998
+    },
+    {
+      "at": "2026-08-28T18:02:58.513Z",
+      "runId": "iter1-executor-only",
+      "caseId": "09-narrow-varchar",
+      "role": "executor",
+      "usd": 0.04624230000000001
+    },
+    {
+      "at": "2026-08-28T18:03:32.758Z",
+      "runId": "iter1-executor-only",
+      "caseId": "10-add-fk-validated-inline",
+      "role": "executor",
+      "usd": 0.021522200000000002
+    },
+    {
+      "at": "2026-08-28T18:04:11.270Z",
+      "runId": "iter1-executor-only",
+      "caseId": "11-drop-unused-index",
+      "role": "executor",
+      "usd": 0.0240795
+    },
+    {
+      "at": "2026-08-28T18:04:55.562Z",
+      "runId": "iter1-executor-only",
+      "caseId": "12-index-not-used-by-query",
+      "role": "executor",
+      "usd": 0.0202312
+    },
+    {
+      "at": "2026-08-28T18:05:22.534Z",
+      "runId": "iter1-executor-only",
+      "caseId": "13-add-column-stable-default",
+      "role": "executor",
+      "usd": 0.0122484
+    },
+    {
+      "at": "2026-08-28T18:05:38.368Z",
+      "runId": "iter1-executor-only",
+      "caseId": "14-narrow-varchar-fits",
+      "role": "executor",
+      "usd": 0.0142637
+    },
+    {
+      "at": "2026-08-28T18:06:32.225Z",
+      "runId": "iter1-executor-only",
+      "caseId": "15-set-not-null-with-nulls",
+      "role": "executor",
+      "usd": 0.0485367
+    },
+    {
+      "at": "2026-08-28T18:06:59.134Z",
+      "runId": "iter1-executor-only",
+      "caseId": "16-set-not-null-no-nulls",
+      "role": "executor",
+      "usd": 0.0132166
+    },
+    {
+      "at": "2026-08-28T18:07:15.521Z",
+      "runId": "iter1-executor-only",
+      "caseId": "17-drop-index-unused",
+      "role": "executor",
+      "usd": 0.0130755
+    },
+    {
+      "at": "2026-08-28T18:08:01.942Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "01-add-nullable-column",
+      "role": "executor",
+      "usd": 0.011272999999999998
+    },
+    {
+      "at": "2026-08-28T18:08:15.024Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "01-add-nullable-column",
+      "role": "verifier",
+      "usd": 0.014398299999999996
+    },
+    {
+      "at": "2026-08-28T18:08:31.693Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "02-create-index-concurrently",
+      "role": "executor",
+      "usd": 0.0127877
+    },
+    {
+      "at": "2026-08-28T18:08:45.365Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "02-create-index-concurrently",
+      "role": "verifier",
+      "usd": 0.009535399999999998
+    },
+    {
+      "at": "2026-08-28T18:09:01.390Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "03-add-fk-not-valid",
+      "role": "executor",
+      "usd": 0.0133824
+    },
+    {
+      "at": "2026-08-28T18:09:13.523Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "03-add-fk-not-valid",
+      "role": "verifier",
+      "usd": 0.0091404
+    },
+    {
+      "at": "2026-08-28T18:11:01.295Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "04-add-column-volatile-default",
+      "role": "executor",
+      "usd": 0.1553777
+    },
+    {
+      "at": "2026-08-28T18:11:21.881Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "04-add-column-volatile-default",
+      "role": "verifier",
+      "usd": 0.019961400000000018
+    },
+    {
+      "at": "2026-08-28T18:12:03.607Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "04-add-column-volatile-default",
+      "role": "executor",
+      "usd": 0.04742299999999999
+    },
+    {
+      "at": "2026-08-28T18:12:25.998Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "04-add-column-volatile-default",
+      "role": "verifier",
+      "usd": 0.023079000000000016
+    },
+    {
+      "at": "2026-08-28T18:13:24.453Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "05-alter-column-type",
+      "role": "executor",
+      "usd": 0.04643919999999999
+    },
+    {
+      "at": "2026-08-28T18:13:47.887Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "05-alter-column-type",
+      "role": "verifier",
+      "usd": 0.026905900000000003
+    },
+    {
+      "at": "2026-08-28T18:14:24.680Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "06-create-index-plain",
+      "role": "executor",
+      "usd": 0.017357499999999998
+    },
+    {
+      "at": "2026-08-28T18:14:39.356Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "06-create-index-plain",
+      "role": "verifier",
+      "usd": 0.0119386
+    },
+    {
+      "at": "2026-08-28T18:15:22.479Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "07-backfill-single-transaction",
+      "role": "executor",
+      "usd": 0.024145899999999998
+    },
+    {
+      "at": "2026-08-28T18:15:42.776Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "07-backfill-single-transaction",
+      "role": "verifier",
+      "usd": 0.0175639
+    },
+    {
+      "at": "2026-08-28T18:16:12.935Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "08-drop-column",
+      "role": "executor",
+      "usd": 0.015831799999999997
+    },
+    {
+      "at": "2026-08-28T18:16:31.318Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "08-drop-column",
+      "role": "verifier",
+      "usd": 0.0145161
+    },
+    {
+      "at": "2026-08-28T18:17:12.121Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "08-drop-column",
+      "role": "executor",
+      "usd": 0.04358279999999999
+    },
+    {
+      "at": "2026-08-28T18:17:37.413Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "08-drop-column",
+      "role": "verifier",
+      "usd": 0.030052200000000015
+    },
+    {
+      "at": "2026-08-28T18:19:05.517Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "09-narrow-varchar",
+      "role": "executor",
+      "usd": 0.0748975
+    },
+    {
+      "at": "2026-08-28T18:19:30.267Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "09-narrow-varchar",
+      "role": "verifier",
+      "usd": 0.018719699999999992
+    },
+    {
+      "at": "2026-08-28T18:20:04.694Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "10-add-fk-validated-inline",
+      "role": "executor",
+      "usd": 0.021595499999999997
+    },
+    {
+      "at": "2026-08-28T18:20:20.294Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "10-add-fk-validated-inline",
+      "role": "verifier",
+      "usd": 0.015778
+    },
+    {
+      "at": "2026-08-28T18:20:59.708Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "11-drop-unused-index",
+      "role": "executor",
+      "usd": 0.0254158
+    },
+    {
+      "at": "2026-08-28T18:21:16.137Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "11-drop-unused-index",
+      "role": "verifier",
+      "usd": 0.0162144
+    },
+    {
+      "at": "2026-08-28T18:21:58.576Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "12-index-not-used-by-query",
+      "role": "executor",
+      "usd": 0.020762000000000003
+    },
+    {
+      "at": "2026-08-28T18:22:19.760Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "12-index-not-used-by-query",
+      "role": "verifier",
+      "usd": 0.0160082
+    },
+    {
+      "at": "2026-08-28T18:22:48.446Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "13-add-column-stable-default",
+      "role": "executor",
+      "usd": 0.0132629
+    },
+    {
+      "at": "2026-08-28T18:23:05.658Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "13-add-column-stable-default",
+      "role": "verifier",
+      "usd": 0.0141649
+    },
+    {
+      "at": "2026-08-28T18:23:20.040Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "14-narrow-varchar-fits",
+      "role": "executor",
+      "usd": 0.0129528
+    },
+    {
+      "at": "2026-08-28T18:23:34.733Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "14-narrow-varchar-fits",
+      "role": "verifier",
+      "usd": 0.010407900000000001
+    },
+    {
+      "at": "2026-08-28T18:24:20.142Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "15-set-not-null-with-nulls",
+      "role": "executor",
+      "usd": 0.0380229
+    },
+    {
+      "at": "2026-08-28T18:25:39.672Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "15-set-not-null-with-nulls",
+      "role": "verifier",
+      "usd": 0.08716299999999999
+    },
+    {
+      "at": "2026-08-28T18:26:06.728Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "16-set-not-null-no-nulls",
+      "role": "executor",
+      "usd": 0.013311300000000002
+    },
+    {
+      "at": "2026-08-28T18:26:20.446Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "16-set-not-null-no-nulls",
+      "role": "verifier",
+      "usd": 0.0100628
+    },
+    {
+      "at": "2026-08-28T18:26:36.913Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "17-drop-index-unused",
+      "role": "executor",
+      "usd": 0.0129377
+    },
+    {
+      "at": "2026-08-28T18:26:49.828Z",
+      "runId": "iter2-executor-verifier",
+      "caseId": "17-drop-index-unused",
+      "role": "verifier",
+      "usd": 0.0091035
+    },
+    {
+      "at": "2026-08-28T18:29:13.863Z",
+      "runId": "iter3-full-pipeline",
+      "caseId": "01-add-nullable-column",
+      "role": "planner",
+      "usd": 0.022268
+    },
+    {
+      "at": "2026-08-28T18:29:29.397Z",
+      "runId": "iter3-full-pipeline",
+      "caseId": "01-add-nullable-column",
+      "role": "executor",
+      "usd": 0.014799299999999998
+    },
+    {
+      "at": "2026-08-28T18:29:41.856Z",
+      "runId": "iter3-full-pipeline",
+      "caseId": "01-add-nullable-column",
+      "role": "verifier",
+      "usd": 0.008982299999999999
+    }
+  ]
+}

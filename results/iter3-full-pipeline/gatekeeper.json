@@ -1,0 +1,100 @@
+{
+  "runId": "iter3-full-pipeline",
+  "method": "gatekeeper",
+  "model": "claude-sonnet-5",
+  "promptHashes": {
+    "baseline": "94ec0e2dee26",
+    "planner": "6f0917989378",
+    "executor": "9aa59328a180",
+    "verifier": "523587b76e1c"
+  },
+  "thresholds": {
+    "writerStallMs": 50,
+    "transactionMs": 2000,
+    "latencyFactor": 5,
+    "seqScanRows": 100000
+  },
+  "options": {
+    "usePlanner": true,
+    "useVerifier": true
+  },
+  "startedAt": "2026-08-28T18:28:55.894Z",
+  "results": [
+    {
+      "caseId": "01-add-nullable-column",
+      "method": "gatekeeper",
+      "review": {
+        "verdict": "SAFE",
+        "hazard": null,
+        "confidence": 0.98,
+        "summary": "Adding nullable coupon_code column to orders is a metadata-only change with negligible impact.",
+        "evidence": [
+          "Migration duration 2ms, longest transaction 0ms",
+          "Concurrent writer max stall 2ms (threshold 50ms), 0 lock_timeout errors",
+          "recent_orders_for_customer query plan unchanged (Bitmap Heap Scan, 0 rows seq-scanned) before/after, 0.036ms -> 0.06ms"
+        ],
+        "fixed_migration": null,
+        "fix_verified": false,
+        "action": "Ship the migration as written; no changes needed."
+      },
+      "needsHumanReview": false,
+      "escalationReason": null,
+      "usage": {
+        "inputTokens": 18,
+        "outputTokens": 1876,
+        "cacheReadTokens": 28343,
+        "cacheWriteTokens": 8634,
+        "costUsd": 0.046049599999999996
+      },
+      "wallMs": 46155,
+      "retries": 0
+    }
+  ],
+  "proofs": {
+    "01-add-nullable-column": null
+  },
+  "grounding": {
+    "01-add-nullable-column": {
+      "cited": 6,
+      "grounded": 6,
+      "ungrounded": []
+    }
+  },
+  "scores": [
+    {
+      "caseId": "01-add-nullable-column",
+      "expected": {
+        "verdict": "SAFE"
+      },
+      "got": {
+        "verdict": "SAFE"
+      },
+      "verdictCorrect": true,
+      "fixProven": false,
+      "falseVerificationClaim": false,
+      "actionable": true,
+      "needsHumanReview": false,
+      "numbersCited": 6,
+      "numbersUngrounded": 0,
+      "costUsd": 0.046049599999999996,
+      "wallMs": 46155
+    }
+  ],
+  "summary": {
+    "cases": 1,
+    "actionable": 1,
+    "actionableRate": 1,
+    "verdictCorrect": 1,
+    "verdictAccuracy": 1,
+    "fixesRequired": 0,
+    "fixesProven": 0,
+    "falseVerificationClaims": 0,
+    "escalated": 0,
+    "numbersCited": 6,
+    "numbersUngrounded": 0,
+    "reviewsWithFabricatedNumbers": 0,
+    "totalCostUsd": 0.046049599999999996,
+    "meanCostUsd": 0.046049599999999996,
+    "meanWallMs": 46155
+  }
+}
