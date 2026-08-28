@@ -1,0 +1,6 @@
+{
+  "title": "Add a nullable column to orders",
+  "writerTables": [
+    { "table": "orders", "keyColumn": "id", "updateColumn": "updated_at", "updateExpr": "now()", "keyMax": 200000 }
+  ]
+}

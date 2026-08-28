@@ -1,0 +1,7 @@
+allowBuilds:
+  cpu-features: false
+  esbuild: true
+  protobufjs: false
+  ssh2: false
+minimumReleaseAgeExclude:
+  - '@anthropic-ai/sdk@0.122.0'

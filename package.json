@@ -1,0 +1,31 @@
+{
+  "name": "pg-gatekeeper",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Agentic reviewer that decides whether a Postgres migration + affected queries are safe to ship, by running them on a disposable Postgres and measuring what happens.",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "review": "tsx src/cli/review.ts",
+    "baseline": "tsx src/cli/baseline.ts",
+    "eval": "tsx src/cli/eval.ts",
+    "label": "tsx src/cli/label.ts",
+    "viewer": "tsx src/cli/viewer.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.122.0",
+    "@testcontainers/postgresql": "12.1.0",
+    "pg": "8.23.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.1",
+    "@types/pg": "8.23.1",
+    "tsx": "4.23.12",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
+  }
+}
