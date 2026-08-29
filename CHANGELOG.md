@@ -14,8 +14,8 @@ Every row is one Run of the same 17 Cases with the same scorer (`pnpm eval`), mo
 
 ## Main failure mode
 
-_pending_
+The Executor lies about its own fix — it reads an inconvenient measurement as if it said the opposite when it is close to finishing. Full write-up with the trajectory pointers in [README → Main failure mode](README.md#main-failure-mode).
 
 ## Hot take
 
-_pending_
+Verification belongs in tools, not in prompts — and verify the verifier first. See [README → Hot take](README.md#hot-take).
