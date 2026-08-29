@@ -54,8 +54,8 @@ function overview(){
   let h='<div class="kpi">';
   if(b) h+=k("Baseline · actionable",pct(b.actionableRate),b.actionable+"/"+b.cases+" · verdicts "+b.verdictCorrect+"/"+b.cases+" · $"+b.meanCostUsd.toFixed(2)+"/case");
   if(g) h+=k("Gatekeeper · actionable",pct(g.actionableRate),g.actionable+"/"+g.cases+" · verdicts "+g.verdictCorrect+"/"+g.cases+" · $"+g.meanCostUsd.toFixed(2)+"/case");
-  if(b) h+=k("Baseline · fixes proven",b.fixesProven+"/"+b.fixesRequired,b.falseVerificationClaims+" false "verified" claims");
-  if(g) h+=k("Gatekeeper · fixes proven",g.fixesProven+"/"+g.fixesRequired,g.falseVerificationClaims+" false "verified" claims · "+g.escalated+" escalated");
+  if(b) h+=k("Baseline · fixes proven",b.fixesProven+"/"+b.fixesRequired,b.falseVerificationClaims+" false 'verified' claims");
+  if(g) h+=k("Gatekeeper · fixes proven",g.fixesProven+"/"+g.fixesRequired,g.falseVerificationClaims+" false 'verified' claims · "+g.escalated+" escalated");
   h+='</div>';
   h+='<div class="card"><table><tr><th>Case</th><th>Label</th><th>Baseline</th><th>Fix</th><th>Gatekeeper</th><th>Fix</th><th>Cost</th><th>Time</th></tr>';
   for(const c of DATA.cases){const bl=c.baseline,gk=c.gatekeeper,sb=c.scores.baseline,sg=c.scores.gatekeeper;
