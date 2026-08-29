@@ -1,5 +1,5 @@
 {
-  "totalUsd": 3.834434500000001,
+  "totalUsd": 3.868604500000001,
   "entries": [
     {
       "at": "2026-08-28T17:37:08.893Z",
@@ -994,6 +994,34 @@
       "caseId": "17-drop-index-unused",
       "role": "verifier",
       "usd": 0.010727799999999996
+    },
+    {
+      "at": "2026-08-29T04:27:29.150Z",
+      "runId": "final",
+      "caseId": "01-add-nullable-column",
+      "role": "baseline",
+      "usd": 0.006732
+    },
+    {
+      "at": "2026-08-29T04:27:36.835Z",
+      "runId": "final",
+      "caseId": "02-create-index-concurrently",
+      "role": "baseline",
+      "usd": 0.007844
+    },
+    {
+      "at": "2026-08-29T04:27:41.562Z",
+      "runId": "final",
+      "caseId": "03-add-fk-not-valid",
+      "role": "baseline",
+      "usd": 0.00794
+    },
+    {
+      "at": "2026-08-29T04:27:48.326Z",
+      "runId": "final",
+      "caseId": "04-add-column-volatile-default",
+      "role": "baseline",
+      "usd": 0.011654
     }
   ]
 }

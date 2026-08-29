@@ -26,13 +26,14 @@ The honest manual procedure — restore a staging copy with realistic volume, ru
 
 ## What the solution does
 
-`pnpm review cases/<case>` runs three roles on the same Claude model:
+`pnpm review cases/<case>` runs two roles on the same Claude model:
 
 | Role | What it does | Tools |
 |---|---|---|
-| **Planner** | Reads the case, checks table sizes, indexes and current query plans, and writes a measurement plan. | `inspect_schema`, `run_sql` (read-only), `explain_query` |
-| **Executor** | Simulates the migration as written, reads the evidence against exact thresholds, drafts a rewrite when needed and proves it. | the above + `simulate_migration`, `verify_fix` |
-| **Verifier** | Sees only the case and the Executor's *claim* (never its reasoning), reproduces the evidence on its own fresh database, and accepts or rejects. A rejection goes back to the Executor with the objection; after two rejections the case is escalated to a human. | `simulate_migration`, `verify_fix`, `explain_query` |
+| **Executor** | Inspects the tables, simulates the migration as written, reads the evidence against exact thresholds, drafts a rewrite when needed and proves it on a fresh database. | `inspect_schema`, `run_sql` (read-only), `explain_query`, `simulate_migration`, `verify_fix` |
+| **Verifier** | Sees only the case and the Executor's *claim* (never its reasoning), reproduces the evidence on its own fresh database, and accepts or rejects. A rejection goes back to the Executor with the objection; after two rejections, or when the cost/time cap is hit, the case is escalated to a human with `needs_human_review`. | `inspect_schema`, `explain_query`, `simulate_migration`, `verify_fix` |
+
+A third role, a **Planner** that writes a measurement plan first, exists behind `--planner`; the changelog explains why it is off.
 
 The Simulation harness underneath is deterministic TypeScript, not a prompt: a fresh `postgres:16` container per simulation (testcontainers), seeded from SQL, a Writer updating a random row every 50 ms with `lock_timeout`, a monitor sampling `pg_locks` and `pg_stat_activity` every 25 ms, schema and row-count snapshots before and after, longest-value checks for narrowed columns, and `EXPLAIN (ANALYZE, FORMAT JSON)` for every affected query. Thresholds (`src/harness/thresholds.ts`) turn evidence into one of five hazards; they were calibrated empirically (`docs/calibration.md`).
 
@@ -60,11 +61,11 @@ See [CHANGELOG.md](CHANGELOG.md) — one row per run, each pointing at the resul
 
 ## Main failure mode
 
-{{FAILURE_MODE}}
+**The Executor lies about its own fix.** Across the runs, every mistake that reached the Verifier had the same shape: the verdict was right, but the rewrite was wrong *and the Executor said it was verified* — a fix that silently dropped a `NOT NULL` and a default (iteration 2, case 04), a `DROP COLUMN` first called SAFE (iteration 2, case 08), fabricated evidence about a fix it had not re-run (iteration 3, case 15). In every instance the tool result it had just received said the opposite. The model does not fail to measure; it fails to *read* an inconvenient measurement when it is close to finishing. Two things catch this and nothing else did: an independent agent that re-measures rather than re-reads, and an eval that re-runs the shipped SQL itself instead of trusting `fix_verified: true`. The remaining, unsolved version is the judgment call — a review that correctly says "do not ship" but offers no rewrite (iteration 3, case 11) is scored as not actionable, and reasonable DBAs would disagree with the scorer there.
 
 ## Hot take
 
-{{HOT_TAKE}}
+**Verification belongs in tools, not in prompts.** A second LLM that can *run the same measurement* is a real check; a second LLM that can only *read the first one's reasoning* is a rubber stamp — and so is a "verify your work" instruction, which is what the Executor was already following when it fabricated results. The Verifier earned its 2.6× cost not by being smarter but by being blind to the argument and holding its own database. The corollary that cost me the most: **verify the verifier first.** My agent spent seven simulations and $0.37 doing the right thing while my harness measured the wrong quantity (total wall time instead of longest transaction) and told it it was wrong. An agent loop is an amplifier; whatever is wrong in the tool is repeated with confidence, at cost, in every trajectory.
 
 ## Reproduction
 

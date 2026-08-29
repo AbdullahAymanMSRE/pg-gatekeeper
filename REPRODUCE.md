@@ -67,7 +67,9 @@ Outputs:
 - `trajectories/final/<case>/<role>.jsonl` — every instruction, model turn, tool call, tool result, rejection and retry
 - `results/final/viewer.html` — all of the above in one page
 
-Runs are resumable: re-running with the same `--run-id` skips finished cases. `--case 07` limits to cases whose id starts with `07`. `--agent --no-verifier` / `--no-planner` run the ablations referenced in the changelog.
+Runs are resumable: re-running with the same `--run-id` skips finished cases and re-scores the ones already done (labels, proofs and the grounding check are recomputed without API calls). `--case 07` limits to cases whose id starts with `07`. `--agent --no-verifier` (Executor only) and `--agent --planner` (add the Planner) reproduce the ablations in the changelog.
+
+Caps: 12 tool calls per Executor run, 6 per Verifier run, $0.60 and 6 minutes per case; hitting one escalates the case to a human (`needs_human_review`) rather than failing the run. HTTP requests time out after 120 s with 3 retries.
 
 Approximate runtime and cost for a full run (17 cases, `claude-sonnet-5`, effort medium): baseline ~3 min / ~$0.20; gatekeeper ~25–40 min / ~$1.5–3. The eval also re-runs every shipped fix through the harness (free, ~10 s each). Exact figures for the submitted run are in `results/final/*.json`. To use another model set `GATEKEEPER_MODEL` in `.env` (prices for `claude-opus-5` and `claude-sonnet-5` are in `src/eval/cost.ts`).
 
