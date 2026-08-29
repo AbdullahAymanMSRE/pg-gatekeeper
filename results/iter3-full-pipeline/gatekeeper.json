@@ -708,12 +708,8 @@
     },
     "12-index-not-used-by-query": {
       "cited": 4,
-      "grounded": 1,
-      "ungrounded": [
-        "105.2",
-        "101.1",
-        "14.7"
-      ]
+      "grounded": 4,
+      "ungrounded": []
     },
     "13-add-column-stable-default": {
       "cited": 4,
@@ -737,10 +733,8 @@
     },
     "17-drop-index-unused": {
       "cited": 5,
-      "grounded": 4,
-      "ungrounded": [
-        "0.04"
-      ]
+      "grounded": 5,
+      "ungrounded": []
     }
   },
   "scores": [
@@ -974,7 +968,7 @@
       "actionable": true,
       "needsHumanReview": false,
       "numbersCited": 4,
-      "numbersUngrounded": 3,
+      "numbersUngrounded": 0,
       "costUsd": 0.061869600000000004,
       "wallMs": 92037
     },
@@ -1066,7 +1060,7 @@
       "actionable": true,
       "needsHumanReview": false,
       "numbersCited": 5,
-      "numbersUngrounded": 1,
+      "numbersUngrounded": 0,
       "costUsd": 0.0537608,
       "wallMs": 69124
     }
@@ -1082,8 +1076,8 @@
     "falseVerificationClaims": 0,
     "escalated": 1,
     "numbersCited": 56,
-    "numbersUngrounded": 4,
-    "reviewsWithFabricatedNumbers": 2,
+    "numbersUngrounded": 0,
+    "reviewsWithFabricatedNumbers": 0,
     "totalCostUsd": 1.5596047,
     "meanCostUsd": 0.09174145294117647,
     "meanWallMs": 96468.11764705883

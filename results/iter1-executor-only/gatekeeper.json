@@ -567,7 +567,7 @@
       "actionable": true,
       "needsHumanReview": false,
       "numbersCited": 3,
-      "numbersUngrounded": 1,
+      "numbersUngrounded": 0,
       "costUsd": 0.0123526,
       "wallMs": 18548
     },
@@ -853,8 +853,8 @@
     "falseVerificationClaims": 0,
     "escalated": 0,
     "numbersCited": 54,
-    "numbersUngrounded": 1,
-    "reviewsWithFabricatedNumbers": 1,
+    "numbersUngrounded": 0,
+    "reviewsWithFabricatedNumbers": 0,
     "totalCostUsd": 0.39068450000000005,
     "meanCostUsd": 0.02298144117647059,
     "meanWallMs": 29287.764705882353
@@ -1011,10 +1011,8 @@
     },
     "02-create-index-concurrently": {
       "cited": 3,
-      "grounded": 2,
-      "ungrounded": [
-        "0.06"
-      ]
+      "grounded": 3,
+      "ungrounded": []
     },
     "03-add-fk-not-valid": {
       "cited": 4,

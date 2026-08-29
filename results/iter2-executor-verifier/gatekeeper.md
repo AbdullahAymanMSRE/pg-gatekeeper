@@ -13,7 +13,7 @@ model `claude-sonnet-5` · prompts baseline@94ec0e2dee26, planner@6f0917989378, 
 | 08-drop-column | UNSAFE/DATA_LOSS | UNSAFE/DATA_LOSS | ✓ | – | ✓ | 2/2 |  | $0.10 | 104s |
 | 09-narrow-varchar | UNSAFE/DATA_LOSS | UNSAFE/DATA_LOSS | ✓ | – | ✓ | 0/0 |  | $0.09 | 106s |
 | 10-add-fk-validated-inline | UNSAFE/CONSTRAINT_SCAN | UNSAFE/CONSTRAINT_SCAN | ✓ | ✓ proven | ✓ | 2/2 |  | $0.04 | 43s |
-| 11-drop-unused-index | UNSAFE/QUERY_REGRESSION | UNSAFE/QUERY_REGRESSION | ✓ | ✓ proven | ✓ | 6/7 |  | $0.04 | 49s |
+| 11-drop-unused-index | UNSAFE/QUERY_REGRESSION | UNSAFE/QUERY_REGRESSION | ✓ | ✓ proven | ✓ | 7/7 |  | $0.04 | 49s |
 | 12-index-not-used-by-query | UNSAFE/QUERY_REGRESSION | UNSAFE/QUERY_REGRESSION | ✓ | ✓ proven | ✓ | 4/4 |  | $0.04 | 57s |
 | 13-add-column-stable-default | SAFE | SAFE | ✓ | – | ✓ | 4/4 |  | $0.03 | 34s |
 | 14-narrow-varchar-fits | SAFE | SAFE | ✓ | – | ✓ | 2/2 |  | $0.02 | 29s |
@@ -21,4 +21,4 @@ model `claude-sonnet-5` · prompts baseline@94ec0e2dee26, planner@6f0917989378, 
 | 16-set-not-null-no-nulls | SAFE | SAFE | ✓ | – | ✓ | 4/4 |  | $0.02 | 30s |
 | 17-drop-index-unused | SAFE | SAFE | ✓ | – | ✓ | 3/3 |  | $0.02 | 29s |
 
-**Actionable 17/17 = 100%** · verdict accuracy 17/17 · fixes proven 7/7 · false verification claims 0 · grounded numbers 53/55 (2 reviews cite unmeasured numbers) · escalated 0 · total $1.00 · mean $0.06 · mean 62s/case
+**Actionable 17/17 = 100%** · verdict accuracy 17/17 · fixes proven 7/7 · false verification claims 0 · grounded numbers 54/55 (1 reviews cite unmeasured numbers) · escalated 0 · total $1.00 · mean $0.06 · mean 62s/case

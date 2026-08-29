@@ -5,7 +5,7 @@ model `claude-sonnet-5` · prompts baseline@94ec0e2dee26, planner@6f0917989378, 
 |---|---|---|:-:|:-:|:-:|:-:|:-:|--:|--:|
 | 04-add-column-volatile-default | UNSAFE/LOCK_BLOCKING | UNSAFE/LOCK_BLOCKING | ✓ | ✓ proven | ✓ | 5/5 |  | $0.04 | 40s |
 | 01-add-nullable-column | SAFE | SAFE | ✓ | – | ✓ | 5/5 |  | $0.02 | 19s |
-| 02-create-index-concurrently | SAFE | SAFE | ✓ | – | ✓ | 2/3 |  | $0.01 | 19s |
+| 02-create-index-concurrently | SAFE | SAFE | ✓ | – | ✓ | 3/3 |  | $0.01 | 19s |
 | 03-add-fk-not-valid | SAFE | SAFE | ✓ | – | ✓ | 4/4 |  | $0.01 | 20s |
 | 05-alter-column-type | UNSAFE/LOCK_BLOCKING | UNSAFE/LOCK_BLOCKING | ✓ | ✓ proven | ✓ | 2/2 |  | $0.04 | 42s |
 | 06-create-index-plain | UNSAFE/LOCK_BLOCKING | UNSAFE/LOCK_BLOCKING | ✓ | ✓ proven | ✓ | 1/1 |  | $0.02 | 26s |
@@ -21,4 +21,4 @@ model `claude-sonnet-5` · prompts baseline@94ec0e2dee26, planner@6f0917989378, 
 | 16-set-not-null-no-nulls | SAFE | SAFE | ✓ | – | ✓ | 4/4 |  | $0.01 | 16s |
 | 17-drop-index-unused | SAFE | SAFE | ✓ | – | ✓ | 5/5 |  | $0.01 | 16s |
 
-**Actionable 17/17 = 100%** · verdict accuracy 17/17 · fixes proven 7/7 · false verification claims 0 · grounded numbers 53/54 (1 reviews cite unmeasured numbers) · escalated 0 · total $0.39 · mean $0.02 · mean 29s/case
+**Actionable 17/17 = 100%** · verdict accuracy 17/17 · fixes proven 7/7 · false verification claims 0 · grounded numbers 54/54 (0 reviews cite unmeasured numbers) · escalated 0 · total $0.39 · mean $0.02 · mean 29s/case

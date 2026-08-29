@@ -706,10 +706,8 @@
     },
     "11-drop-unused-index": {
       "cited": 7,
-      "grounded": 6,
-      "ungrounded": [
-        "13.24"
-      ]
+      "grounded": 7,
+      "ungrounded": []
     },
     "12-index-not-used-by-query": {
       "cited": 4,
@@ -955,7 +953,7 @@
       "actionable": true,
       "needsHumanReview": false,
       "numbersCited": 7,
-      "numbersUngrounded": 1,
+      "numbersUngrounded": 0,
       "costUsd": 0.0416302,
       "wallMs": 48956
     },
@@ -1083,8 +1081,8 @@
     "falseVerificationClaims": 0,
     "escalated": 0,
     "numbersCited": 55,
-    "numbersUngrounded": 2,
-    "reviewsWithFabricatedNumbers": 2,
+    "numbersUngrounded": 1,
+    "reviewsWithFabricatedNumbers": 1,
     "totalCostUsd": 0.9954729999999998,
     "meanCostUsd": 0.05855723529411764,
     "meanWallMs": 62009.117647058825
