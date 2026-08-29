@@ -149,6 +149,7 @@ function event(e){ const t=e.ts.slice(11,19);
     case "tool_result": return '<details><summary>← <code>'+esc(e.name)+'</code><span class="n">'+e.ms+' ms</span></summary><pre>'+esc(typeof e.output==="string"?e.output:JSON.stringify(e.output,null,2))+'</pre></details>';
     case "rejection": return '<div><b class="bad">Verifier rejected</b> (round '+e.round+'): '+esc(e.reason)+'</div>';
     case "retry": return '<div><b>Executor retry</b> round '+e.round+'</div>';
+    case "error": return '<div><b class="bad">API error:</b> '+esc(e.message)+'</div>';
     case "escalation": return '<div><b class="bad">Escalated to a human:</b> '+esc(e.reason)+'</div>';
     case "final": return '<details><summary><b class="ok">Final output</b><span class="n">'+t+'</span></summary><pre>'+esc(JSON.stringify(e.output,null,2))+'</pre></details>';
     default: return esc(JSON.stringify(e));

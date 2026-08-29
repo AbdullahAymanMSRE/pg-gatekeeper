@@ -14,7 +14,12 @@ export const EFFORT = (process.env.GATEKEEPER_EFFORT ?? "medium") as "low" | "me
 loadDotenv();
 /** Identity-linked API keys must name the workspace on every request. */
 const workspaceId = process.env.ANTHROPIC_WORKSPACE_ID;
-export const client = new Anthropic(workspaceId ? { defaultHeaders: { "anthropic-workspace-id": workspaceId } } : {});
+export const client = new Anthropic({
+  // A hung request must fail fast so the per-case time cap can act; the SDK retries silently otherwise.
+  timeout: 120_000,
+  maxRetries: 3,
+  ...(workspaceId ? { defaultHeaders: { "anthropic-workspace-id": workspaceId } } : {}),
+});
 
 export interface Caps {
   maxToolCalls: number;
@@ -110,7 +115,9 @@ export async function runRole(opts: {
       if (spend.usage.costUsd > caps.maxCostUsd) throw new CapExceeded(`cost cap hit: $${spend.usage.costUsd.toFixed(2)}`);
     }
   } catch (err) {
-    if (controller.signal.aborted) throw new CapExceeded("time cap hit");
+    const message = err instanceof Error ? `${err.name}: ${err.message}` : String(err);
+    await opts.logger.log(opts.role, { type: "error", message });
+    if (controller.signal.aborted) throw new CapExceeded(`time cap hit (last error: ${message})`);
     throw err;
   } finally {
     clearTimeout(timer);

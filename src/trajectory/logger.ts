@@ -12,6 +12,7 @@ export type TrajectoryEvent =
   | { type: "rejection"; reason: string; round: number }
   | { type: "retry"; round: number }
   | { type: "escalation"; reason: string }
+  | { type: "error"; message: string }
   | { type: "final"; output: unknown };
 
 /**
