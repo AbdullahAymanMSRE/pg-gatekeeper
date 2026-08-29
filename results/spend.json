@@ -1,5 +1,5 @@
 {
-  "totalUsd": 5.176744700000002,
+  "totalUsd": 5.2725351000000025,
   "entries": [
     {
       "at": "2026-08-28T17:37:08.893Z",
@@ -1568,6 +1568,20 @@
       "caseId": "06-create-index-plain",
       "role": "verifier",
       "usd": 0.012789000000000002
+    },
+    {
+      "at": "2026-08-29T20:55:19.478Z",
+      "runId": "demo",
+      "caseId": "04-add-column-volatile-default",
+      "role": "executor",
+      "usd": 0.06948139999999998
+    },
+    {
+      "at": "2026-08-29T20:55:51.690Z",
+      "runId": "demo",
+      "caseId": "04-add-column-volatile-default",
+      "role": "verifier",
+      "usd": 0.026309
     }
   ]
 }

@@ -4,3 +4,5 @@ node_modules/
 # scratch runs
 results/smoke/
 trajectories/smoke/
+trajectories/demo/
+results/demo/
