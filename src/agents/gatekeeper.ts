@@ -33,13 +33,13 @@ export interface GatekeeperOptions {
   runId: string;
   caps?: Caps;
   maxRetries?: number;
-  /** Iteration knobs for the changelog; all on by default. */
+  /** Iteration knobs for the changelog. The Planner is off by default (see CHANGELOG, iteration 3). */
   usePlanner?: boolean;
   useVerifier?: boolean;
 }
 
 /**
- * Planner → Executor → Verifier, with the Verifier blind to the Executor's reasoning (ADR-0002).
+ * Executor → Verifier (optionally Planner first), with the Verifier blind to the Executor's reasoning (ADR-0002).
  * A Rejection sends the Verifier's objection back to a fresh Executor run; after
  * `maxRetries` rejections, or any cap, the Case is escalated to a human.
  */
@@ -61,7 +61,7 @@ export async function gatekeeper(c: Case, opts: GatekeeperOptions): Promise<Revi
   try {
     // --- Planner ---
     let plan: Plan | null = null;
-    if (opts.usePlanner !== false) {
+    if (opts.usePlanner === true) {
       const sink = { plan: null as Plan | null };
       await runRole({
         role: "planner",

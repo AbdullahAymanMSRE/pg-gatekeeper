@@ -4,7 +4,8 @@
  * pnpm eval --agent
  * pnpm eval --case 07            # filter cases by id prefix
  * pnpm eval --run-id my-run      # name the run (default: timestamp); re-running resumes it
- * pnpm eval --agent --no-planner --no-verifier   # ablations for the changelog
+ * pnpm eval --agent --no-verifier   # ablation: Executor only
+ * pnpm eval --agent --planner       # ablation: add the Planner (off by default)
  */
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -25,7 +26,7 @@ if (both || flag("--agent")) {
   g = await runMethod("gatekeeper", {
     runId,
     caseFilter,
-    gatekeeper: { usePlanner: !flag("--no-planner"), useVerifier: !flag("--no-verifier") },
+    gatekeeper: { usePlanner: flag("--planner"), useVerifier: !flag("--no-verifier") },
   });
 }
 if (b && g) {

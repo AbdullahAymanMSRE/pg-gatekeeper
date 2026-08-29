@@ -13,12 +13,12 @@ model `claude-sonnet-5` · prompts baseline@94ec0e2dee26, planner@6f0917989378, 
 | 08-drop-column | UNSAFE/DATA_LOSS | UNSAFE/DATA_LOSS | ✓ | – | ✓ | 5/5 |  | $0.11 | 107s |
 | 09-narrow-varchar | UNSAFE/DATA_LOSS | UNSAFE/DATA_LOSS | ✓ | – | ✓ | 0/0 |  | $0.11 | 117s |
 | 10-add-fk-validated-inline | UNSAFE/CONSTRAINT_SCAN | UNSAFE/CONSTRAINT_SCAN | ✓ | ✓ proven | ✓ | 1/1 |  | $0.07 | 65s |
-| 11-drop-unused-index | UNSAFE/QUERY_REGRESSION | UNSAFE/LOCK_BLOCKING | ✗ | ✗ | ✗ | 0/0 | yes | $0.01 | 921s |
-| 12-index-not-used-by-query | UNSAFE/QUERY_REGRESSION | UNSAFE/LOCK_BLOCKING | ✗ | ✗ | ✗ | 0/0 | yes | $0.02 | 939s |
-| 13-add-column-stable-default | SAFE | SAFE | ✓ | – | ✓ | 3/3 | yes | $0.06 | 360s |
-| 14-narrow-varchar-fits | SAFE | UNSAFE/LOCK_BLOCKING | ✗ | – | ✗ | 0/0 | yes | $0.01 | 914s |
-| 15-set-not-null-with-nulls | UNSAFE/DATA_LOSS | UNSAFE/LOCK_BLOCKING | ✗ | – | ✗ | 0/0 | yes | $0.05 | 395s |
-| 16-set-not-null-no-nulls | SAFE | UNSAFE/LOCK_BLOCKING | ✗ | – | ✗ | 0/0 | yes | $0.04 | 1160s |
-| 17-drop-index-unused | SAFE | SAFE | ✓ | – | ✓ | 4/4 | yes | $0.06 | 974s |
+| 11-drop-unused-index | UNSAFE/QUERY_REGRESSION | UNSAFE/QUERY_REGRESSION | ✓ | ✗ | ✗ | 4/4 |  | $0.08 | 71s |
+| 12-index-not-used-by-query | UNSAFE/QUERY_REGRESSION | UNSAFE/QUERY_REGRESSION | ✓ | ✓ proven | ✓ | 1/4 |  | $0.06 | 92s |
+| 13-add-column-stable-default | SAFE | SAFE | ✓ | – | ✓ | 4/4 |  | $0.07 | 71s |
+| 14-narrow-varchar-fits | SAFE | SAFE | ✓ | – | ✓ | 5/5 |  | $0.06 | 67s |
+| 15-set-not-null-with-nulls | UNSAFE/DATA_LOSS | UNSAFE/DATA_LOSS | ✓ | – | ✓ | 4/4 | yes | $0.35 | 360s |
+| 16-set-not-null-no-nulls | SAFE | SAFE | ✓ | – | ✓ | 4/4 |  | $0.05 | 53s |
+| 17-drop-index-unused | SAFE | SAFE | ✓ | – | ✓ | 4/5 |  | $0.05 | 69s |
 
-**Actionable 12/17 = 71%** · verdict accuracy 12/17 · fixes proven 5/7 · false verification claims 0 · grounded numbers 33/33 (0 reviews cite unmeasured numbers) · escalated 7 · total $1.07 · mean $0.06 · mean 384s/case
+**Actionable 16/17 = 94%** · verdict accuracy 17/17 · fixes proven 6/7 · false verification claims 0 · grounded numbers 52/56 (2 reviews cite unmeasured numbers) · escalated 1 · total $1.56 · mean $0.09 · mean 96s/case
