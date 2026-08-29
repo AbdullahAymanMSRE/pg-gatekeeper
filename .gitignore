@@ -1,8 +1,8 @@
 node_modules/
-.env
 *.log
 # scratch runs
 results/smoke/
 trajectories/smoke/
 trajectories/demo/
 results/demo/
+config.bat

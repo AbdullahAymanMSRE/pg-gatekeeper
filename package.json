@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "description": "Agentic reviewer that decides whether a Postgres migration + affected queries are safe to ship, by running them on a disposable Postgres and measuring what happens.",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
@@ -18,6 +20,8 @@
   "dependencies": {
     "@anthropic-ai/sdk": "0.122.0",
     "@testcontainers/postgresql": "12.1.0",
+    "dotenv": "^8.2.0",
+    "node-fetch": "^3.3.2",
     "pg": "8.23.0",
     "zod": "4.4.3"
   },
